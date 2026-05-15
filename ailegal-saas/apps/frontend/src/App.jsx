@@ -722,7 +722,7 @@
 
       try {
         addLog('→ Enviando prompt para a IA (Gemini)...');
-        const res = await fetch('http://localhost:3000/api/process/generate', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/process/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: activeProject.promptText })
@@ -796,7 +796,7 @@
       try {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await fetch('http://localhost:3000/api/process/extract-prompt', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/process/extract-prompt`, {
           method: 'POST', body: formData
         });
         if (!res.ok) throw new Error('Erro ao processar arquivo');
