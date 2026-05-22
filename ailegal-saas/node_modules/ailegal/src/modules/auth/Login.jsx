@@ -1,4 +1,3 @@
-// src/modules/auth/Login.jsx
 import { useState } from "react";
 import { Scale, Mail, Lock, Loader } from "lucide-react";
 import { Input } from "../../shared/components/Input";

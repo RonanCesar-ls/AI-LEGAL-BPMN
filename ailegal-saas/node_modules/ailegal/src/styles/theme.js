@@ -1,4 +1,3 @@
-// src/styles/theme.js
 export const GOLD = "#d4a017";
 export const GOLD_DIM = "#b88a12";
 export const BG = "#f4f5f7"; 

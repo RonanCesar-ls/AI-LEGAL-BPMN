@@ -32,7 +32,6 @@ export const EditorPage = ({ user, onLogout }) => {
 
   return (
     <div style={{ display: "flex", height: "100vh", background: BG, color: TEXT, fontFamily: "'DM Sans', sans-serif", overflow: "hidden" }}>
-      {/* 1. SIDEBAR ESQUERDA */}
       <div style={{ width: sidebarOpen ? 220 : 64, background: SURFACE, borderRight: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", transition: "width .2s" }}>
         <div style={{ padding: "18px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${BORDER}` }}>
           <div style={{ background: `${GOLD}22`, borderRadius: 8, padding: 8, flexShrink: 0 }}><Scale size={18} color={GOLD_DIM} /></div>
@@ -51,7 +50,6 @@ export const EditorPage = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* ÁREA PRINCIPAL */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}` }}>
           <div style={{ height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
@@ -65,7 +63,6 @@ export const EditorPage = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* ABAS */}
           {projects.length > 0 && (
             <div style={{ display: "flex", gap: 2, padding: "0 16px", overflowX: "auto" }}>
               {projects.map(proj => (
@@ -79,11 +76,9 @@ export const EditorPage = ({ user, onLogout }) => {
           )}
         </div>
 
-        {/* TELAS */}
         {view === "editor" && (
           <div style={{ flex: 1, display: "grid", gridTemplateColumns: "260px 1fr 260px", overflow: "hidden" }}>
             
-            {/* PAINEL ESQUERDO */}
             <div style={{ background: SURFACE, borderRight: `1px solid ${BORDER}`, padding: 16, overflow: "auto" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Descreva o Processo</p>
@@ -112,7 +107,6 @@ export const EditorPage = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* CENTRO (CANVAS) */}
             <div style={{ position: "relative", overflow: "hidden", display: "flex", background: BG, backgroundImage: `radial-gradient(${BORDER} 1px, transparent 1px)`, backgroundSize: "24px 24px" }}>
               {!activeProject ? (
                 <div style={{ margin: "auto", textAlign: "center", color: MUTED, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}><GitBranch size={48} color={BORDER} /><p style={{ fontSize: 16, fontWeight: 600 }}>Nenhum projeto aberto.</p></div>
@@ -125,7 +119,6 @@ export const EditorPage = ({ user, onLogout }) => {
               )}
             </div>
 
-            {/* PAINEL DIREITO */}
             <div style={{ background: SURFACE, borderLeft: `1px solid ${BORDER}`, padding: 16, overflow: "auto" }}>
               <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Propriedades</p>
               <div style={{ marginBottom: 20 }}><label style={{ color: MUTED, fontSize: 12, display: "block", marginBottom: 6, fontWeight: 600 }}>Título do processo</label><input value={activeProject?.name || ''} onChange={e => setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, name: e.target.value } : p))} style={{ width: "100%", padding: "9px 12px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, outline: "none", color: TEXT }} disabled={!activeProject} /></div>
@@ -152,7 +145,6 @@ export const EditorPage = ({ user, onLogout }) => {
           </div>
         )}
 
-        {/* MODAL FULLSCREEN (mantive na mesma página para simplificar a injeção do hook) */}
         {promptFullscreen && (
           <div style={{ position: "fixed", inset: 0, background: "#00000077", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: SURFACE, borderRadius: 16, border: `1px solid ${BORDER}`, width: "80vw", maxWidth: 900, height: "80vh", display: "flex", flexDirection: "column" }}>

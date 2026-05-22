@@ -1,4 +1,3 @@
-// src/modules/editor/components/EditorCanvas.jsx
 import { useState, useCallback, useMemo } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, applyNodeChanges, applyEdgeChanges, addEdge, useReactFlow } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -11,7 +10,6 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
 
-  // Correção do aviso: Memorizando os tipos de nós para o Vite não recriar a cada render
   const memoizedNodeTypes = useMemo(() => nodeTypes, []);
 
   const onNodesChange = useCallback((changes) => {

@@ -7,7 +7,6 @@ import { AIService } from '../ai/ai.service.js';
 const correlationService = new CorrelationService();
 const aiService = new AIService();
 
-// Prompt para análise de documento RCC → gera rascunho de texto
 const DOCUMENT_ANALYSIS_PROMPT = `You are a legal process assistant. Read the raw text from the document below and write a clear process description in Portuguese.
 
 Focus on: who performs each action, what is done in sequence, and what decisions exist (if X happens, do Y).
@@ -19,7 +18,6 @@ DOCUMENT TEXT:
 
 export const processController = {
 
-  // ─── ROTA: POST /api/process/generate ─────────────────────────────────────
   generate: async (req: Request, res: Response) => {
     try {
       const { prompt } = req.body;
@@ -41,7 +39,6 @@ export const processController = {
     }
   },
 
-  // ─── ROTA: POST /api/process/extract-prompt ────────────────────────────────
   extractPrompt: async (req: Request, res: Response) => {
     const filePath = req.file?.path;
 
@@ -54,7 +51,6 @@ export const processController = {
       const fileType    = req.file.mimetype;
       let extractedText = '';
 
-      // ── Extrai texto do PDF ──────────────────────────────────────────────
       if (fileType === 'application/pdf' || originalName.endsWith('.pdf')) {
         const dataBuffer = fs.readFileSync(filePath);
         const pdfParseModule = (await import('pdf-parse')) as any;
@@ -62,7 +58,6 @@ export const processController = {
         const data = await pdfParse(dataBuffer);
         extractedText = data.text;
       }
-      // ── Extrai texto do DOCX ─────────────────────────────────────────────
       else if (
         fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
         originalName.endsWith('.docx')
@@ -74,7 +69,6 @@ export const processController = {
         return res.status(400).json({ error: 'Formato não suportado. Envie PDF ou DOCX.' });
       }
 
-      // Apaga arquivo temporário assim que texto é extraído
       fs.unlinkSync(filePath);
 
       if (!extractedText.trim()) {
@@ -83,12 +77,8 @@ export const processController = {
         });
       }
 
-      // Limita tokens — 15k chars é ~3.7k tokens, seguro pra Gemini Flash
       const safeText = extractedText.substring(0, 15000);
 
-      // ── Chama a IA de verdade ────────────────────────────────────────────
-      // generateText é o método raw do seu ai.provider.ts
-      // que retorna texto puro (não JSON)
       const suggestedPrompt = await aiService.generateRawText(
         DOCUMENT_ANALYSIS_PROMPT + safeText + '"'
       );
@@ -98,7 +88,6 @@ export const processController = {
     } catch (error) {
       console.error('[extractPrompt] Erro:', error);
 
-      // Garante limpeza do arquivo mesmo em caso de erro
       if (filePath && fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -117,7 +106,6 @@ export const processController = {
       return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
     }
 
-    // Processa todos os arquivos em paralelo
     const results = await Promise.allSettled(
       files.map(async (file) => {
         const originalName = file.originalname.toLowerCase();
@@ -151,7 +139,6 @@ export const processController = {
       })
     );
 
-    // Limpa arquivos que possam ter sobrado em caso de erro
     files.forEach(file => {
       if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
     });

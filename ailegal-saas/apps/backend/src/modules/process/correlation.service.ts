@@ -1,6 +1,6 @@
 export interface Correlation {
   actor: string;
-  foundIn: string[]; // ids dos projetos
+  foundIn: string[];
 }
 
 export class CorrelationService {

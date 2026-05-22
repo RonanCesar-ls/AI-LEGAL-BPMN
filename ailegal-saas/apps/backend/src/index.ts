@@ -6,11 +6,9 @@ import { processRoutes } from './modules/process/process.routes.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Rotas
 app.use('/api/process', processRoutes);
 
 app.listen(PORT, () => {

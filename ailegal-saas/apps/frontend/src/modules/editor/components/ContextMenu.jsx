@@ -1,4 +1,3 @@
-// src/modules/editor/components/ContextMenu.jsx
 import { useEffect } from "react";
 
 export const ContextMenu = ({ x, y, onEdit, onDelete, onClose }) => {

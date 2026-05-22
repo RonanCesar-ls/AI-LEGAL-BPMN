@@ -1,4 +1,3 @@
-// src/modules/editor/components/FlowChartEditor.jsx
 import { useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import { MousePointer2, ArrowRight } from "lucide-react";

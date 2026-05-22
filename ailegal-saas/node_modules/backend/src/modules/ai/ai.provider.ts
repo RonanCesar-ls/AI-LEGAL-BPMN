@@ -14,7 +14,6 @@ export async function generateText(params: GenerateTextParams): Promise<string> 
 
   const genAI = new GoogleGenerativeAI(apiKey);
   
-  // Utilizamos o modelo flash por ser mais rápido e ideal para estruturação de dados e respostas imediatas (MVP)
   const model = genAI.getGenerativeModel({
     model: "gemini-3.1-flash-lite-preview",
     systemInstruction: params.system,

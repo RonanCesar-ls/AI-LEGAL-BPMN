@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState } from "react";
 import { Landing } from "./modules/landing/Landing";
 import { Login } from "./modules/auth/Login";

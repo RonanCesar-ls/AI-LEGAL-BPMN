@@ -1,10 +1,7 @@
 import { FlowChartEditor } from "../editor/components/FlowChartEditor";
-// src/modules/landing/Landing.jsx
 import { Scale, Upload, GitBranch, Cpu, Shield, BarChart2, Mail, Zap, ArrowRight } from "lucide-react";
 import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
-// IMPORTANTE: Deixe comentado até criarmos o editor no próximo passo
-// import { FlowChartEditor } from "../editor/components/FlowChartEditor";
 
 export const Landing = ({ onLogin, onCadastro }) => {
   const features = [

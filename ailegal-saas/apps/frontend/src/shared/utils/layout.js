@@ -1,4 +1,3 @@
-// src/shared/utils/layout.js
 import dagre from "dagre";
 
 export const getLayoutedElements = (nodes, edges) => {

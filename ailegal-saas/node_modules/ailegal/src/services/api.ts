@@ -1,4 +1,3 @@
-// apps/frontend/src/services/api.ts
 
 import { FlowchartData } from '@ailegal/shared-types';
 
