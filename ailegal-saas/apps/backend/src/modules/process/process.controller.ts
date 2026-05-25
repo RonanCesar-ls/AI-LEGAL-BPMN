@@ -1,3 +1,5 @@
+import { timelineService } from './timeline.service.js';
+import { slaService }      from './sla.service.js';
 import { CorrelationService } from './correlation.service.js';
 import { Request, Response } from 'express';
 import fs from 'fs';
@@ -17,6 +19,7 @@ DOCUMENT TEXT:
 "`;
 
 export const processController = {
+
 
   generate: async (req: Request, res: Response) => {
     try {
@@ -98,68 +101,146 @@ export const processController = {
       });
     }
   },
+
   generateBatch: async (req: Request, res: Response) => {
-  try {
-    const files = req.files as Express.Multer.File[];
+    try {
+      const files = req.files as Express.Multer.File[];
 
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+      }
+
+      const results = await Promise.allSettled(
+        files.map(async (file) => {
+          const originalName = file.originalname.toLowerCase();
+          let extractedText = '';
+
+          if (file.mimetype === 'application/pdf' || originalName.endsWith('.pdf')) {
+            const dataBuffer = fs.readFileSync(file.path);
+            const pdfParseModule = (await import('pdf-parse')) as any;
+            const pdfParse = pdfParseModule.default ?? pdfParseModule;
+            const data = await pdfParse(dataBuffer);
+            extractedText = data.text;
+          } else if (
+            file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            originalName.endsWith('.docx')
+          ) {
+            const result = await mammoth.extractRawText({ path: file.path });
+            extractedText = result.value;
+          }
+
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+
+          const safeText = extractedText.substring(0, 15000);
+          const prompt = `You are a legal process assistant. Read the raw text from the document below and write a clear process description in Portuguese. Focus on: who performs each action, what is done in sequence, and what decisions exist. Return ONLY a direct narrative paragraph in Portuguese.\n\nDOCUMENT TEXT:\n"${safeText}"`;
+
+          const suggestedPrompt = await aiService.generateRawText(prompt);
+
+          return {
+            fileName: file.originalname,
+            suggestedPrompt: suggestedPrompt.trim(),
+          };
+        })
+      );
+
+      if (req.files && Array.isArray(req.files)) {
+        req.files.forEach(file => {
+          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        });
+      }
+
+      const successful = results
+        .filter(r => r.status === 'fulfilled')
+        .map(r => (r as PromiseFulfilledResult<any>).value);
+
+      const failed = results
+        .filter(r => r.status === 'rejected')
+        .length;
+
+      return res.json({
+        results: successful,
+        failed,
+        total: files.length,
+      });
+
+    } catch (error) {
+      console.error('[generateBatch] Erro:', error);
+      
+      if (req.files && Array.isArray(req.files)) {
+        req.files.forEach(file => {
+          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        });
+      }
+      
+      return res.status(500).json({ error: 'Falha ao processar os arquivos.' });
     }
+  },
 
-    const results = await Promise.allSettled(
-      files.map(async (file) => {
-        const originalName = file.originalname.toLowerCase();
-        let extractedText = '';
 
-        if (file.mimetype === 'application/pdf' || originalName.endsWith('.pdf')) {
-          const dataBuffer = fs.readFileSync(file.path);
-          const pdfParseModule = (await import('pdf-parse')) as any;
-          const pdfParse = pdfParseModule.default ?? pdfParseModule;
-          const data = await pdfParse(dataBuffer);
-          extractedText = data.text;
-        } else if (
-          file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-          originalName.endsWith('.docx')
-        ) {
-          const result = await mammoth.extractRawText({ path: file.path });
-          extractedText = result.value;
-        }
 
-        fs.unlinkSync(file.path);
+  updateNodeStatus: async (req: Request, res: Response) => {
+    try {
+      const { nodeId }= req.params;
+      const { projectId, status, actor, note } = req.body;
 
-        const safeText = extractedText.substring(0, 15000);
-        const prompt = `You are a legal process assistant. Read the raw text from the document below and write a clear process description in Portuguese. Focus on: who performs each action, what is done in sequence, and what decisions exist. Return ONLY a direct narrative paragraph in Portuguese.\n\nDOCUMENT TEXT:\n"${safeText}"`;
+      if (!projectId || !status || !actor) {
+        return res.status(400).json({ error: 'projectId, status e actor são obrigatórios.' });
+      }
 
-        const suggestedPrompt = await aiService.generateRawText(prompt);
+      const fromStatus = await timelineService.getCurrentStatus(projectId, nodeId);
+      const event = await timelineService.recordChange(projectId, nodeId, fromStatus, { status, actor, note });
+      const sla = slaService.onStatusChange(projectId, nodeId, status);
 
-        return {
-          fileName: file.originalname,
-          suggestedPrompt: suggestedPrompt.trim(),
-        };
-      })
-    );
+      return res.json({ event, sla });
+    } catch (error) {
+      console.error('[updateNodeStatus]', error);
+      return res.status(500).json({ error: 'Falha ao atualizar status.' });
+    }
+  },
 
-    files.forEach(file => {
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-    });
+  getNodeTimeline: async (req: Request, res: Response) => {
+    try {
+      const { nodeId }   = req.params;
+      const { projectId } = req.query as { projectId: string };
 
-    const successful = results
-      .filter(r => r.status === 'fulfilled')
-      .map(r => (r as PromiseFulfilledResult<any>).value);
+      if (!projectId) return res.status(400).json({ error: 'projectId é obrigatório.' });
 
-    const failed = results
-      .filter(r => r.status === 'rejected')
-      .length;
+      const timeline = await timelineService.getTimeline(projectId, nodeId);
+      const sla= slaService.getSla(projectId, nodeId);
+      const status = await timelineService.getCurrentStatus(projectId, nodeId);
 
-    return res.json({
-      results: successful,
-      failed,
-      total: files.length,
-    });
+      return res.json({ nodeId, projectId, status, timeline, sla });
+    } catch (error) {
+      return res.status(500).json({ error: 'Falha ao buscar timeline.' });
+    }
+  },
 
-  } catch (error) {
-    console.error('[generateBatch] Erro:', error);
-    return res.status(500).json({ error: 'Falha ao processar os arquivos.' });
-  }
-}
+  initNodeSla: async (req: Request, res: Response) => {
+    try {
+      const { nodeId } = req.params;
+      const { projectId, expectedMinutes } = req.body;
+
+      if (!projectId || !expectedMinutes) {
+        return res.status(400).json({ error: 'projectId e expectedMinutes são obrigatórios.' });
+      }
+
+      const sla = slaService.initSla(projectId, nodeId, expectedMinutes);
+      return res.json({ nodeId, projectId, sla });
+    } catch (error) {
+      return res.status(500).json({ error: 'Falha ao configurar SLA.' });
+    }
+  },
+
+  getProcessDiagnostic: async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      const violations = slaService.getViolations(projectId);
+      return res.json({ projectId, violations, totalViolations: violations.length, generatedAt: new Date().toISOString() });
+    } catch (error) {
+      return res.status(500).json({ error: 'Falha ao gerar diagnóstico.' });
+    }
+  },
+
 };

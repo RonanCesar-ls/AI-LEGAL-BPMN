@@ -113,7 +113,7 @@ export const EditorPage = ({ user, onLogout }) => {
               ) : activeProject.status === 'generating' ? (
                 <div style={{ margin: "auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}><Loader size={42} color={GOLD_DIM} style={{ animation: "spin 1s linear infinite" }}/><p style={{ color: GOLD_DIM, fontSize: 16, fontWeight: 700 }}>IA analisando o documento...</p></div>
               ) : nodes.length > 0 ? (
-                <FlowChartEditor nodes={nodes} setNodes={setActiveNodes} edges={edges} setEdges={setActiveEdges}/>
+                <FlowChartEditor nodes={nodes} setNodes={setActiveNodes} edges={edges} setEdges={setActiveEdges} projectId={activeProjectId}/>
               ) : (
                 <div style={{ margin: "auto", textAlign: "center", color: MUTED, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}><GitBranch size={48} color={BORDER} /><p style={{ fontSize: 16, fontWeight: 600 }}>Pronto para gerar.</p></div>
               )}

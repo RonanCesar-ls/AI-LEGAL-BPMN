@@ -4,11 +4,12 @@ import 'reactflow/dist/style.css';
 import { nodeTypes } from '../nodes/nodeTypes';
 import { ContextMenu } from './ContextMenu';
 
-export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, activeTool }) => {
+export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, activeTool, projectId }) => {
   const reactFlowInstance = useReactFlow();
   const [contextMenu, setContextMenu] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
+  const [timelineModal, setTimelineModal] = useState(null);
 
   const memoizedNodeTypes = useMemo(() => nodeTypes, []);
 
@@ -81,6 +82,43 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
     setContextMenu(null);
   };
 
+  const handleStatusChange = async (newStatus) => {
+  if (!contextMenu) return;
+  const nodeId = contextMenu.id;
+  const actor  = 'Usuário'; // TODO: trocar pelo usuário logado
+
+  // Atualiza visualmente no React Flow imediatamente
+  setNodes(nds => nds.map(n =>
+    n.id === nodeId ? { ...n, data: { ...n.data, status: newStatus } } : n
+  ));
+
+  // Envia para o backend
+  try {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/process/nodes/${nodeId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus, actor, projectId: projectId }),
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar status:', err);
+  }
+};
+
+const handleTimeline = async () => {
+  if (!contextMenu) return;
+  const nodeId = contextMenu.id;
+  const node   = nodes.find(n => n.id === nodeId);
+  setContextMenu(null);
+
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/process/nodes/${nodeId}/timeline?projectId=${projectId}`);
+    const data = await res.json();
+    setTimelineModal({ nodeId, nodeLabel: node?.data?.label || nodeId, ...data });
+  } catch {
+    setTimelineModal({ nodeId, nodeLabel: node?.data?.label || nodeId, timeline: [], sla: null, status: null });
+  }
+};
+
   const commitEdit = () => {
     if (!editingId) return;
     setNodes(nds => nds.map(n => n.id === editingId ? { ...n, data: { ...n.data, label: editingValue } } : n));
@@ -123,8 +161,99 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
       )}
 
       {contextMenu && (
-        <ContextMenu x={contextMenu.x} y={contextMenu.y} onEdit={handleEdit} onDelete={handleDelete} onClose={() => setContextMenu(null)} />
+  <ContextMenu
+    x={contextMenu.x}
+    y={contextMenu.y}
+    type={contextMenu.type}
+    onEdit={handleEdit}
+    onDelete={handleDelete}
+    onStatusChange={handleStatusChange}
+    onTimeline={handleTimeline}
+    onClose={() => setContextMenu(null)}
+  />
+)}
+
+{/* MODAL DE TIMELINE */}
+{timelineModal && (
+  <div style={{
+    position: 'absolute', inset: 0, background: '#00000044', zIndex: 600,
+    display: 'flex', alignItems: 'center', justifyContent: 'center'
+  }} onClick={() => setTimelineModal(null)}>
+    <div style={{
+      background: '#fff', borderRadius: 12, width: 420, maxHeight: '80vh',
+      overflow: 'auto', boxShadow: '0 16px 48px rgba(0,0,0,0.2)',
+      border: '1px solid #e2e8f0'
+    }} onClick={e => e.stopPropagation()}>
+
+      {/* Header */}
+      <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#1e293b' }}>📋 Timeline</div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{timelineModal.nodeLabel}</div>
+        </div>
+        <button onClick={() => setTimelineModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#64748b' }}>✕</button>
+      </div>
+
+      {/* SLA Banner */}
+      {timelineModal.sla && (
+        <div style={{
+          margin: '12px 16px', padding: '10px 14px', borderRadius: 8,
+          background: timelineModal.sla.isViolated ? '#fee2e2' : '#dcfce7',
+          border: `1px solid ${timelineModal.sla.isViolated ? '#fca5a5' : '#86efac'}`,
+        }}>
+          <div style={{ fontWeight: 700, fontSize: 12, color: timelineModal.sla.isViolated ? '#dc2626' : '#16a34a' }}>
+            {timelineModal.sla.isViolated ? '⚠ SLA Violado' : '✓ SLA OK'}
+          </div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+            Esperado: {Math.round(timelineModal.sla.expectedMinutes / 60)}h
+            {timelineModal.sla.actualMinutes != null && (
+              <> · Real: {Math.round(timelineModal.sla.actualMinutes / 60)}h
+                {timelineModal.sla.isViolated && <span style={{ color: '#dc2626', fontWeight: 700 }}> · +{Math.round(timelineModal.sla.delayMinutes / 60)}h de atraso</span>}
+              </>
+            )}
+          </div>
+        </div>
       )}
+
+      {/* Eventos */}
+      <div style={{ padding: '8px 16px 16px' }}>
+        {timelineModal.timeline?.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#94a3b8', padding: '24px 0', fontSize: 13 }}>
+            Nenhuma alteração registrada ainda.
+          </div>
+        ) : (
+          timelineModal.timeline?.map((event, i) => (
+            <div key={event.id} style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              {/* linha vertical */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#6366f1', flexShrink: 0, marginTop: 4 }} />
+                {i < timelineModal.timeline.length - 1 && (
+                  <div style={{ width: 2, flex: 1, background: '#e2e8f0', marginTop: 4 }} />
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#1e293b' }}>
+                  {event.actor} alterou o status
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                  {event.fromStatus ? `${event.fromStatus} →` : 'Início →'} <strong>{event.toStatus}</strong>
+                </div>
+                {event.note && (
+                  <div style={{ fontSize: 11, color: '#6366f1', marginTop: 4, fontStyle: 'italic' }}>
+                    "{event.note}"
+                  </div>
+                )}
+                <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
+                  {new Date(event.timestamp).toLocaleString('pt-BR')}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
       {nodes.length > 0 ? (
         <ReactFlow
