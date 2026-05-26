@@ -10,6 +10,8 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
   const [timelineModal, setTimelineModal] = useState(null);
+  const [statusModal, setStatusModal] = useState(null);
+  const [statusNote, setStatusNote] = useState('');
 
   const memoizedNodeTypes = useMemo(() => nodeTypes, []);
 
@@ -85,19 +87,29 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
   const handleStatusChange = async (newStatus) => {
   if (!contextMenu) return;
   const nodeId = contextMenu.id;
-  const actor  = 'Usuário'; // TODO: trocar pelo usuário logado
+  setContextMenu(null);
 
-  // Atualiza visualmente no React Flow imediatamente
+  if (newStatus === 'blocked') {
+    setStatusNote('');
+    setStatusModal({ nodeId, newStatus });
+    return;
+  }
+
+  await applyStatusChange(nodeId, newStatus, undefined);
+};
+
+const applyStatusChange = async (nodeId, newStatus, note) => {
+  const actor = 'Usuário';
+
   setNodes(nds => nds.map(n =>
     n.id === nodeId ? { ...n, data: { ...n.data, status: newStatus } } : n
   ));
 
-  // Envia para o backend
   try {
     await fetch(`${import.meta.env.VITE_API_URL}/api/process/nodes/${nodeId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus, actor, projectId: projectId }),
+      body: JSON.stringify({ status: newStatus, actor, note, projectId }),
     });
   } catch (err) {
     console.error('Erro ao atualizar status:', err);
@@ -160,6 +172,83 @@ const handleTimeline = async () => {
         </div>
       )}
 
+{statusModal && (
+  <div style={{
+    position: 'absolute', inset: 0, background: '#00000044', zIndex: 700,
+    display: 'flex', alignItems: 'center', justifyContent: 'center'
+  }} onClick={() => setStatusModal(null)}>
+    <div style={{
+      background: '#fff', borderRadius: 12, padding: 24, width: 380,
+      border: '1px solid #fca5a5', boxShadow: '0 16px 48px rgba(0,0,0,0.2)'
+    }} onClick={e => e.stopPropagation()}>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <div style={{ background: '#fee2e2', borderRadius: 8, padding: '6px 10px', fontSize: 18 }}>🔴</div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#1e293b' }}>Registrar Impedimento</div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+            Explique o que está bloqueando esta tarefa
+          </div>
+        </div>
+      </div>
+
+      <textarea
+        autoFocus
+        value={statusNote}
+        onChange={e => setStatusNote(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && e.ctrlKey) {
+            applyStatusChange(statusModal.nodeId, statusModal.newStatus, statusNote.trim() || undefined);
+            setStatusModal(null);
+          }
+          if (e.key === 'Escape') setStatusModal(null);
+        }}
+        placeholder="Ex: Faltou o documento X. Aguardando o cliente enviar."
+        style={{
+          width: '100%', minHeight: 80, padding: '10px 12px',
+          borderRadius: 8, fontSize: 13, color: '#1e293b',
+          border: '1.5px solid #fca5a5', outline: 'none',
+          fontFamily: 'inherit', resize: 'vertical',
+          boxSizing: 'border-box', marginBottom: 16,
+          lineHeight: 1.6,
+        }}
+        onFocus={e => e.target.style.borderColor = '#ef4444'}
+        onBlur={e => e.target.style.borderColor = '#fca5a5'}
+      />
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <button
+          onClick={() => setStatusModal(null)}
+          style={{
+            padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0',
+            background: 'none', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit',
+            color: '#64748b'
+          }}
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={() => {
+            applyStatusChange(statusModal.nodeId, statusModal.newStatus, statusNote.trim() || undefined);
+            setStatusModal(null);
+          }}
+          style={{
+            padding: '8px 16px', borderRadius: 8, border: 'none',
+            background: '#ef4444', color: '#fff', cursor: 'pointer',
+            fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+          }}
+        >
+          🔴 Confirmar Impedimento
+        </button>
+      </div>
+
+      <div style={{ textAlign: 'right', marginTop: 8, fontSize: 11, color: '#94a3b8' }}>
+        Ctrl+Enter para confirmar · Esc para cancelar
+      </div>
+    </div>
+  </div>
+)}
+
       {contextMenu && (
   <ContextMenu
     x={contextMenu.x}
@@ -173,7 +262,6 @@ const handleTimeline = async () => {
   />
 )}
 
-{/* MODAL DE TIMELINE */}
 {timelineModal && (
   <div style={{
     position: 'absolute', inset: 0, background: '#00000044', zIndex: 600,
@@ -185,7 +273,6 @@ const handleTimeline = async () => {
       border: '1px solid #e2e8f0'
     }} onClick={e => e.stopPropagation()}>
 
-      {/* Header */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#1e293b' }}>📋 Timeline</div>
@@ -194,7 +281,6 @@ const handleTimeline = async () => {
         <button onClick={() => setTimelineModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#64748b' }}>✕</button>
       </div>
 
-      {/* SLA Banner */}
       {timelineModal.sla && (
         <div style={{
           margin: '12px 16px', padding: '10px 14px', borderRadius: 8,
@@ -215,7 +301,6 @@ const handleTimeline = async () => {
         </div>
       )}
 
-      {/* Eventos */}
       <div style={{ padding: '8px 16px 16px' }}>
         {timelineModal.timeline?.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#94a3b8', padding: '24px 0', fontSize: 13 }}>
@@ -224,7 +309,6 @@ const handleTimeline = async () => {
         ) : (
           timelineModal.timeline?.map((event, i) => (
             <div key={event.id} style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-              {/* linha vertical */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#6366f1', flexShrink: 0, marginTop: 4 }} />
                 {i < timelineModal.timeline.length - 1 && (
