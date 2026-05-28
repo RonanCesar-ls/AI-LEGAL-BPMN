@@ -12,5 +12,5 @@ app.use(express.json());
 app.use('/api/process', processRoutes);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor AILegal rodando na porta ${PORT}`);
+  console.log(` Servidor AILegal rodando na porta ${PORT}`);
 });

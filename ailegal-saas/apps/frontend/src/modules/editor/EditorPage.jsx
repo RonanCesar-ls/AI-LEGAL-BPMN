@@ -1,3 +1,4 @@
+import { GlobalTimeline } from './components/GlobalTimeline';
 import { useState, useRef } from "react";
 import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu } from "lucide-react";
 import { FlowChartEditor } from "./components/FlowChartEditor";
@@ -119,14 +120,29 @@ export const EditorPage = ({ user, onLogout }) => {
               )}
             </div>
 
-            <div style={{ background: SURFACE, borderLeft: `1px solid ${BORDER}`, padding: 16, overflow: "auto" }}>
-              <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Propriedades</p>
-              <div style={{ marginBottom: 20 }}><label style={{ color: MUTED, fontSize: 12, display: "block", marginBottom: 6, fontWeight: 600 }}>Título do processo</label><input value={activeProject?.name || ''} onChange={e => setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, name: e.target.value } : p))} style={{ width: "100%", padding: "9px 12px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, outline: "none", color: TEXT }} disabled={!activeProject} /></div>
-              <div style={{ opacity: generated ? 1 : 0.5 }}>
-                <p style={{ color: MUTED, fontSize: 12, marginBottom: 8, fontWeight: 600 }}>Resumo de Entidades</p>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${BORDER}` }}><span style={{ color: MUTED, fontSize: 13 }}>Nós Extraídos</span> <Badge>{nodes.length}</Badge></div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${BORDER}` }}><span style={{ color: MUTED, fontSize: 13 }}>Decisões Identificadas</span> <Badge>{nodes.filter(n => n.type === 'gateway').length}</Badge></div>
+            {/* PAINEL DIREITO: Propriedades + Timeline Global */}
+            <div style={{ background: SURFACE, borderLeft: `1px solid ${BORDER}`, overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
+              
+              {/* Bloco de Propriedades */}
+              <div style={{ padding: 16, borderBottom: `1px solid ${BORDER}` }}>
+                <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Propriedades</p>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ color: MUTED, fontSize: 12, display: "block", marginBottom: 6, fontWeight: 600 }}>Título do processo</label>
+                  <input value={activeProject?.name || ''} onChange={e => setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, name: e.target.value } : p))} style={{ width: "100%", padding: "9px 12px", background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, outline: "none", color: TEXT }} disabled={!activeProject} />
+                </div>
+                <div style={{ opacity: generated ? 1 : 0.5 }}>
+                  <p style={{ color: MUTED, fontSize: 12, marginBottom: 8, fontWeight: 600 }}>Resumo de Entidades</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${BORDER}` }}><span style={{ color: MUTED, fontSize: 13 }}>Nós Extraídos</span> <Badge>{nodes.length}</Badge></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0" }}><span style={{ color: MUTED, fontSize: 13 }}>Decisões Identificadas</span> <Badge>{nodes.filter(n => n.type === 'gateway').length}</Badge></div>
+                </div>
               </div>
+
+              {/* Bloco da Timeline Global */}
+              <div style={{ flex: 1, overflow: "auto", padding: 16 }}>
+                <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Timeline do Processo</p>
+                <GlobalTimeline nodes={nodes} />
+              </div>
+
             </div>
           </div>
         )}

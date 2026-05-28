@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Handle, Position } from 'reactflow';
 
 const STATUS_STYLES = {
@@ -7,7 +8,6 @@ const STATUS_STYLES = {
   blocked:     { border: '2px solid #ef4444', background: '#fee2e2', label: '🔴' },
 };
 
-// Retorna o estilo correto ou o padrão do tipo de nó
 function getNodeStyle(defaultStyle, status) {
   if (!status || status === 'todo') return defaultStyle;
   const s = STATUS_STYLES[status];
@@ -61,6 +61,66 @@ export const TaskNode = ({ data }) => {
   );
 };
 
+export const TaskNodeWithTooltip = (props) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const { data } = props;
+  const timeline = data.timeline || [];
+
+  const hasStarted = timeline.length > 0;
+  const startTime = hasStarted ? new Date(timeline[0].timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+  const isDone = data.status === 'done';
+  const endTime = isDone && timeline.length > 0 ? new Date(timeline[timeline.length - 1].timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+  return (
+    <div 
+      style={{ position: 'relative' }} 
+      onMouseEnter={() => setIsHovered(true)} 
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <TaskNode {...props} />
+
+      {isHovered && (
+        <div style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginBottom: 8,
+          background: '#1e293b',
+          color: '#f8fafc',
+          padding: '8px 12px',
+          borderRadius: 8,
+          fontSize: 11,
+          width: 140,
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+          zIndex: 1000,
+          pointerEvents: 'none'
+        }}>
+          <div style={{ fontWeight: 700, borderBottom: '1px solid #334155', paddingBottom: 4, marginBottom: 4 }}>
+            ⏱️ Tempos do Processo
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+            <span style={{ color: '#94a3b8' }}>Início:</span> <span>{startTime}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+            <span style={{ color: '#94a3b8' }}>Fim:</span> <span>{endTime}</span>
+          </div>
+          
+          <div style={{
+            position: 'absolute',
+            bottom: -4,
+            left: '50%',
+            transform: 'translateX(-50%) rotate(45deg)',
+            width: 8,
+            height: 8,
+            background: '#1e293b'
+          }} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const GatewayNode = ({ data }) => {
   const style = getNodeStyle(
     { background: '#fef9c3', border: '2px solid #eab308' },
@@ -105,10 +165,10 @@ export const SwimlaneNode = ({ data }) => (
 );
 
 export const nodeTypes = {
-  task:     TaskNode,
+  task:     TaskNodeWithTooltip,
   gateway:  GatewayNode,
   start:    StartNode,
   end:      EndNode,
   swimlane: SwimlaneNode,
-  default:  TaskNode,
+  default:  TaskNodeWithTooltip,
 };
