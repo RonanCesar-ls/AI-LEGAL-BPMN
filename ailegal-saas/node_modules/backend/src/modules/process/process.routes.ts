@@ -10,6 +10,9 @@ processRoutes.post('/generate',       processController.generate);
 processRoutes.post('/extract-prompt', upload.single('file'),         processController.extractPrompt);
 processRoutes.post('/generate-batch', upload.array('files', 10),     processController.generateBatch);
 
+// A ROTA QUE FALTAVA PARA O MERGE DOS ARQUIVOS
+processRoutes.post('/generate-merge', processController.generateMerge);
+
 // Novas rotas de Process Mining
 processRoutes.patch('/nodes/:nodeId/status',    processController.updateNodeStatus);
 processRoutes.get('/nodes/:nodeId/timeline',    processController.getNodeTimeline);

@@ -142,6 +142,9 @@ export const GatewayNode = ({ data }) => {
 
 export const StartNode = ({ data }) => (
   <div style={{ position: 'relative', width: 40, height: 40 }}>
+    {/* Handle INVISÍVEL de entrada para aceitar conexões "espertas" da IA sem quebrar o React Flow */}
+    <Handle type="target" position={Position.Left} style={{ opacity: 0, pointerEvents: 'none' }} />
+    
     <div style={{ background: '#dcfce7', border: '3px solid #22c55e', width: 40, height: 40, borderRadius: '50%', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }} />
     <Handle type="source" position={Position.Right} style={{ background: '#22c55e', width: 10, height: 10, top: '50%' }} />
   </div>
@@ -151,6 +154,9 @@ export const EndNode = ({ data }) => (
   <div style={{ position: 'relative', width: 40, height: 40 }}>
     <div style={{ background: '#fee2e2', border: '4px solid #ef4444', width: 40, height: 40, borderRadius: '50%', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }} />
     <Handle type="target" position={Position.Left} style={{ background: '#ef4444', width: 10, height: 10, top: '50%' }} />
+    
+    {/* Handle INVISÍVEL de saída para aceitar conexões da IA sem quebrar o React Flow */}
+    <Handle type="source" position={Position.Right} style={{ opacity: 0, pointerEvents: 'none' }} />
   </div>
 );
 

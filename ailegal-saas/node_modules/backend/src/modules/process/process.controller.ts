@@ -243,4 +243,42 @@ export const processController = {
     }
   },
 
+  generateMerge: async (req: Request, res: Response) => {
+    try {
+      const { existingGraph, newDocumentText, sourceFileName } = req.body;
+
+      // Validações
+      if (!existingGraph || !Array.isArray(existingGraph.nodes) || !Array.isArray(existingGraph.edges)) {
+        return res.status(400).json({ error: 'existingGraph inválido. Deve ter nodes[] e edges[].' });
+      }
+
+      if (!newDocumentText || typeof newDocumentText !== 'string' || !newDocumentText.trim()) {
+        return res.status(400).json({ error: 'newDocumentText é obrigatório.' });
+      }
+
+      if (!sourceFileName || typeof sourceFileName !== 'string') {
+        return res.status(400).json({ error: 'sourceFileName é obrigatório.' });
+      }
+
+      console.log(`[generateMerge] Incorporando "${sourceFileName}" ao grafo (${existingGraph.nodes.length} nós existentes)`);
+
+      const mergedGraph = await aiService.mergeFlowchart(
+        existingGraph,
+        newDocumentText.trim(),
+        sourceFileName
+      );
+
+      console.log(`[generateMerge] Resultado: ${mergedGraph.nodes.length} nós, ${mergedGraph.edges.length} arestas`);
+
+      return res.json(mergedGraph);
+
+    } catch (error) {
+      console.error('[generateMerge] Erro:', error);
+      return res.status(500).json({
+        error: 'Falha ao integrar o novo documento ao fluxograma.',
+        detail: error instanceof Error ? error.message : String(error),
+      });
+    }
+  },
+
 };

@@ -13,7 +13,7 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
   const [statusModal, setStatusModal] = useState(null);
   const [statusNote, setStatusNote] = useState('');
 
-  const memoizedNodeTypes = useMemo(() => nodeTypes, []);
+  
 
   const onNodesChange = useCallback((changes) => {
     if (setNodes) setNodes((nds) => applyNodeChanges(changes, nds));
@@ -361,7 +361,9 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
 
       {nodes.length > 0 ? (
         <ReactFlow
-          nodes={nodes} edges={edges} nodeTypes={memoizedNodeTypes}
+          nodes={nodes} 
+          edges={edges} 
+          nodeTypes={nodeTypes} // ← A MÁGICA AQUI: Passando a constante importada direto!
           onNodesChange={isReadOnly ? undefined : onNodesChange}
           onEdgesChange={isReadOnly ? undefined : onEdgesChange}
           onConnect={isReadOnly ? undefined : onConnect}

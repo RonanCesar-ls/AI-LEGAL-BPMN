@@ -1,9 +1,9 @@
-import { GlobalTimeline } from './components/GlobalTimeline';
 import { useState, useRef } from "react";
 import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu } from "lucide-react";
-import { FlowChartEditor } from "./components/FlowChartEditor";
 import { useProjects } from "./hooks/useProjects";
 import { useFlowGenerate } from "./hooks/useFlowGenerate";
+import { FlowChartEditor } from "./components/FlowChartEditor";
+import { GlobalTimeline } from './components/GlobalTimeline';
 import { Badge } from "../../shared/components/Badge";
 import { Btn } from "../../shared/components/Btn";
 import { Modal } from "../../shared/components/Modal";
@@ -15,14 +15,96 @@ export const EditorPage = ({ user, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [promptFullscreen, setPromptFullscreen] = useState(false);
   const fileInputRef = useRef(null);
+  const [uploadChoiceModal, setUploadChoiceModal] = useState(null);
 
   const projectsHook = useProjects();
-  const { generating, runGenerate, handleExtractPrompt } = useFlowGenerate(projectsHook);
   const { projects, setProjects, activeProjectId, setActiveProjectId, activeProject, nodes, edges, generated, setActiveNodes, setActiveEdges } = projectsHook;
 
+  // CORRIGIDO: Adicionado o handleExtractPrompt que estava faltando
+  const { generating, runQueueExtraction, runQueueGeneration, runTextGeneration, handleExtractPrompt } = useFlowGenerate({
+    activeProjectId,
+    setProjects,
+  });
+
   const handleFileUpload = (e) => {
-    Array.from(e.target.files).forEach(handleExtractPrompt);
-    e.target.value = ''; 
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    e.target.value = '';
+
+    if (files.length === 1) {
+      // Um arquivo → sempre cria aba nova (comportamento original)
+      handleCreateProjectFromFiles(files, 'separate');
+      return;
+    }
+
+    // Múltiplos arquivos → pergunta ao usuário
+    setUploadChoiceModal({ files });
+  };
+
+  const handleCreateProjectFromFiles = (files, mode) => {
+    setUploadChoiceModal(null);
+
+    if (mode === 'separate') {
+      // Cada arquivo vira uma aba independente
+      files.forEach(file => {
+        const projectId = `proj_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+        setProjects(prev => [...prev, {
+          id:              projectId,
+          name:            file.name.replace(/\.(pdf|docx)$/i, ''),
+          type:            'Automático',
+          status:          'idle',
+          nodes:           [],
+          edges:           [],
+          aiLog:           [],
+          promptText:      '',
+          processingQueue: [],
+        }]);
+
+        setActiveProjectId(projectId);
+
+        // ← CORREÇÃO: usa runQueueExtraction em vez de handleExtractPrompt
+        setTimeout(() => {
+          runQueueExtraction([file], projectId);
+        }, 50);
+      });
+
+    } else {
+      // Modo merged: todos na mesma aba
+      const projectId = `proj_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const name = files.length <= 2
+        ? files.map(f => f.name.replace(/\.(pdf|docx)$/i, '')).join(' + ')
+        : `${files[0].name.replace(/\.(pdf|docx)$/i, '')} +${files.length - 1} outros`;
+
+      setProjects(prev => [...prev, {
+        id:              projectId,
+        name,
+        type:            'Automático',
+        status:          'idle',
+        nodes:           [],
+        edges:           [],
+        aiLog:           [],
+        promptText:      '',
+        processingQueue: [],
+      }]);
+
+      setActiveProjectId(projectId);
+
+      setTimeout(() => {
+        runQueueExtraction(files, projectId);
+      }, 50);
+    }
+  };
+
+  const handleRunGenerate = () => {
+    const hasQueue = activeProject?.processingQueue?.length > 0
+      && activeProject.processingQueue.some(item => item.extractedPrompt);
+
+    if (hasQueue) {
+      runQueueGeneration(activeProjectId);
+    } else {
+      runQueueGeneration(activeProjectId); // texto direto também passa pelo mesmo caminho
+    }
   };
 
   const sidebarMenu = [
@@ -33,6 +115,8 @@ export const EditorPage = ({ user, onLogout }) => {
 
   return (
     <div style={{ display: "flex", height: "100vh", background: BG, color: TEXT, fontFamily: "'DM Sans', sans-serif", overflow: "hidden" }}>
+      
+      {/* SIDEBAR ESQUERDA */}
       <div style={{ width: sidebarOpen ? 220 : 64, background: SURFACE, borderRight: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", transition: "width .2s" }}>
         <div style={{ padding: "18px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${BORDER}` }}>
           <div style={{ background: `${GOLD}22`, borderRadius: 8, padding: 8, flexShrink: 0 }}><Scale size={18} color={GOLD_DIM} /></div>
@@ -51,6 +135,7 @@ export const EditorPage = ({ user, onLogout }) => {
         </div>
       </div>
 
+      {/* ÁREA PRINCIPAL */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}` }}>
           <div style={{ height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
@@ -80,7 +165,7 @@ export const EditorPage = ({ user, onLogout }) => {
         {view === "editor" && (
           <div style={{ flex: 1, display: "grid", gridTemplateColumns: "260px 1fr 260px", overflow: "hidden" }}>
             
-            <div style={{ background: SURFACE, borderRight: `1px solid ${BORDER}`, padding: 16, overflow: "auto" }}>
+            <div style={{ background: SURFACE, borderRight: `1px solid ${BORDER}`, padding: 16, overflow: "auto", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>Descreva o Processo</p>
                 <button onClick={() => setPromptFullscreen(true)} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 6, cursor: "pointer", padding: "3px 7px", color: MUTED, fontSize: 11, display: "flex", alignItems: "center", gap: 4, fontFamily: "inherit" }}>
@@ -91,17 +176,54 @@ export const EditorPage = ({ user, onLogout }) => {
               <div style={{ marginBottom: 12 }}>
                 <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".pdf,.docx" multiple style={{ display: "none" }} />
                 <button onClick={() => fileInputRef.current.click()} style={{ width: "100%", padding: "10px", background: "#f8fafc", border: `2px dashed ${BORDER}`, borderRadius: 8, color: MUTED, fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <Upload size={16} /> Importar Arquivo RCC
+                  <Upload size={16} /> Importar Arquivos RCC
                 </button>
               </div>
 
-              <textarea value={activeProject?.promptText || ''} onChange={e => setProjects(prev => prev.map(p =>p.id === activeProjectId ? { ...p, promptText: e.target.value } : p))} placeholder="Descreva o processo..." style={{ width: "100%", height: 160, padding: 12, background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, color: TEXT, fontFamily: "inherit", resize: "vertical", marginBottom: 12, outline: "none", boxSizing: "border-box" }} />
-              <Btn onClick={runGenerate} disabled={generating || !activeProject?.promptText?.trim()} style={{ width: "100%", justifyContent: "center", marginBottom: 24 }}>
+              <textarea value={activeProject?.promptText || ''} onChange={e => setProjects(prev => prev.map(p =>p.id === activeProjectId ? { ...p, promptText: e.target.value } : p))} placeholder="Descreva o processo..." style={{ width: "100%", height: 160, padding: 12, background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, color: TEXT, fontFamily: "inherit", resize: "vertical", marginBottom: 12, outline: "none", boxSizing: "border-box", flexShrink: 0 }} />
+              <Btn onClick={handleRunGenerate} disabled={generating || !activeProject?.promptText?.trim()} style={{ width: "100%", justifyContent: "center", marginBottom: 24, flexShrink: 0 }}>
                 {generating ? <Loader size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Zap size={14} />} {generating ? "Gerando..." : "Gerar Fluxograma"}
               </Btn>
 
-              <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>Log de Processamento</p>
-              <div style={{ background: "#1e293b", borderRadius: 8, padding: 10, minHeight: 120, fontFamily: "monospace", fontSize: 11, lineHeight: 1.8 }}>
+              {/* FILA DE PROCESSAMENTO */}
+              {activeProject?.processingQueue?.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  <p style={{ color: '#64748b', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
+                    Fila de Arquivos
+                  </p>
+                  {activeProject.processingQueue.map(item => {
+                    const statusConfig = {
+                      waiting:    { icon: '⏳', color: '#94a3b8' },
+                      extracting: { icon: '📄', color: '#eab308' },
+                      generating: { icon: '⚡', color: '#6366f1' },
+                      done:       { icon: '✅', color: '#22c55e' },
+                      error:      { icon: '❌', color: '#ef4444' },
+                    }[item.status] ?? { icon: '⏳', color: '#94a3b8' };
+
+                    return (
+                      <div key={item.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '6px 10px', borderRadius: 6, marginBottom: 4,
+                        background: '#f8fafc', border: '1px solid #e2e8f0',
+                      }}>
+                        <span style={{ fontSize: 14 }}>{statusConfig.icon}</span>
+                        <span style={{
+                          fontSize: 11, color: '#1e293b', flex: 1,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {item.fileName}
+                        </span>
+                        <span style={{ fontSize: 10, color: statusConfig.color, fontWeight: 700, flexShrink: 0 }}>
+                          {item.status.toUpperCase()}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10, marginTop: 'auto' }}>Log de Processamento</p>
+              <div style={{ background: "#1e293b", borderRadius: 8, padding: 10, minHeight: 120, fontFamily: "monospace", fontSize: 11, lineHeight: 1.8, flexShrink: 0 }}>
                 {!activeProject?.aiLog?.length && <span style={{ color: MUTED }}>Aguardando prompt...</span>}
                 {activeProject?.aiLog?.map((l, i) => (<div key={i} style={{ color: l.startsWith("✓") ? "#4ecdc4" : GOLD }}>{l}</div>))}
                 {generating && <div style={{ color: GOLD, animation: "pulse 1s infinite" }}>▊</div>}
@@ -123,7 +245,6 @@ export const EditorPage = ({ user, onLogout }) => {
             {/* PAINEL DIREITO: Propriedades + Timeline Global */}
             <div style={{ background: SURFACE, borderLeft: `1px solid ${BORDER}`, overflow: "hidden", display: "flex", flexDirection: "column", height: "100%" }}>
               
-              {/* Bloco de Propriedades */}
               <div style={{ padding: 16, borderBottom: `1px solid ${BORDER}` }}>
                 <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Propriedades</p>
                 <div style={{ marginBottom: 20 }}>
@@ -137,7 +258,6 @@ export const EditorPage = ({ user, onLogout }) => {
                 </div>
               </div>
 
-              {/* Bloco da Timeline Global */}
               <div style={{ flex: 1, overflow: "auto", padding: 16 }}>
                 <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Timeline do Processo</p>
                 <GlobalTimeline nodes={nodes} />
@@ -167,7 +287,7 @@ export const EditorPage = ({ user, onLogout }) => {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: `1px solid ${BORDER}` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}><FileText size={14} color={GOLD_DIM} /><span style={{ fontWeight: 700, fontSize: 15 }}>Editor de Prompt</span></div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <Btn onClick={() => { setPromptFullscreen(false); runGenerate(); }} disabled={generating || !activeProject?.promptText?.trim()} size="sm"><Zap size={13} /> {generating ? "Gerando..." : "Gerar Fluxograma"}</Btn>
+                  <Btn onClick={() => { setPromptFullscreen(false); handleRunGenerate(); }} disabled={generating || !activeProject?.promptText?.trim()} size="sm"><Zap size={13} /> {generating ? "Gerando..." : "Gerar Fluxograma"}</Btn>
                   <button onClick={() => setPromptFullscreen(false)} style={{ background: "none", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", color: MUTED }}><X size={16} /></button>
                 </div>
               </div>
@@ -176,6 +296,94 @@ export const EditorPage = ({ user, onLogout }) => {
           </div>
         )}
       </div>
+
+      {/* MODAL DE ESCOLHA: separado ou junto */}
+      {uploadChoiceModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: '#00000066',
+          backdropFilter: 'blur(4px)', zIndex: 300,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }} onClick={() => setUploadChoiceModal(null)}>
+          <div style={{
+            background: '#ffffff', borderRadius: 16, padding: 32, width: 480,
+            border: '1px solid #e2e8f0', boxShadow: '0 24px 80px rgba(0,0,0,0.15)'
+          }} onClick={e => e.stopPropagation()}>
+
+            <div style={{ marginBottom: 24 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>
+                📁 {uploadChoiceModal.files.length} arquivos selecionados
+              </h2>
+              <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6 }}>
+                Como você quer processar esses arquivos?
+              </p>
+            </div>
+
+            {/* Lista de arquivos */}
+            <div style={{ background: '#f8fafc', borderRadius: 8, padding: 12, marginBottom: 24 }}>
+              {uploadChoiceModal.files.map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+                  <span style={{ fontSize: 14 }}>📄</span>
+                  <span style={{ fontSize: 12, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {f.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Opções */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+
+              {/* Opção A: separado */}
+              <button
+                onClick={() => handleCreateProjectFromFiles(uploadChoiceModal.files, 'separate')}
+                style={{
+                  padding: '16px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                  border: '2px solid #e2e8f0', background: '#ffffff',
+                  transition: 'all .15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#d4a017'; e.currentTarget.style.background = '#fffbeb'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
+              >
+                <div style={{ fontSize: 24, marginBottom: 8 }}>🗂️</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>
+                  Abas separadas
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5 }}>
+                  Cada arquivo gera seu próprio fluxograma em uma aba independente.
+                </div>
+              </button>
+
+              {/* Opção B: juntos */}
+              <button
+                onClick={() => handleCreateProjectFromFiles(uploadChoiceModal.files, 'merged')}
+                style={{
+                  padding: '16px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                  border: '2px solid #e2e8f0', background: '#ffffff',
+                  transition: 'all .15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.background = '#f0f0ff'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
+              >
+                <div style={{ fontSize: 24, marginBottom: 8 }}>🔗</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>
+                  Mesma aba
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5 }}>
+                  A IA analisa todos juntos e conecta os processos que tiverem relação.
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setUploadChoiceModal(null)}
+              style={{ marginTop: 16, width: '100%', padding: '8px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
