@@ -1,39 +1,187 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { projectsApi } from '../../../shared/services/projectsApi';
 
-export const useProjects = () => {
-  const [projects, setProjects] = useState([]);
-  const [activeProjectId, setActiveProjectId] = useState(null);
+const STORAGE_KEY  = 'ailegal_projects';
+const SAVE_DELAY   = 2000; // salva 2s após última mudança (debounce)
 
+function loadLocal() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocal(projects) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+  } catch {}
+}
+
+export function useProjects(user) {
+  const [projects, setProjectsRaw]        = useState(loadLocal);
+  const [activeProjectId, setActiveProjectId] = useState(() => {
+    const saved = loadLocal();
+    return saved.length > 0 ? saved[saved.length - 1].id : null;
+  });
+  const [dbReady, setDbReady]   = useState(false);
+  const [syncing, setSyncing]   = useState(false);
+  const saveTimerRef            = useRef({});
+
+  // ─── WRAPPER: salva no estado + localStorage ───────────────────────────────
+  const setProjects = useCallback((updater) => {
+    setProjectsRaw(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      saveLocal(next);
+      return next;
+    });
+  }, []);
+
+  // ─── CARREGA DO BANCO quando o usuário loga ───────────────────────────────
+  useEffect(() => {
+    if (!user?.id) {
+      setDbReady(false);
+      return;
+    }
+
+    async function loadFromDb() {
+      setSyncing(true);
+      try {
+        const dbProjects = await projectsApi.list(user.id);
+
+        if (dbProjects.length > 0) {
+          // Banco tem dados — usa eles como fonte de verdade
+          const withLog = dbProjects.map(p => ({ ...p, aiLog: [] }));
+          setProjectsRaw(withLog);
+          saveLocal(withLog);
+          setActiveProjectId(withLog[0].id);
+        } else {
+          // Banco vazio mas localStorage tem dados — sincroniza pro banco
+          const local = loadLocal();
+          if (local.length > 0) {
+            await Promise.all(
+              local.map(p => projectsApi.create(p, user.id).catch(() => {}))
+            );
+          }
+        }
+
+        setDbReady(true);
+      } catch (err) {
+        console.warn('[useProjects] Banco indisponível, usando localStorage.', err.message);
+        setDbReady(false);
+      } finally {
+        setSyncing(false);
+      }
+    }
+
+    loadFromDb();
+  }, [user?.id]);
+
+  // ─── AUTO-SAVE com debounce: salva no banco após 2s de inatividade ─────────
+  useEffect(() => {
+    if (!dbReady || !user?.id || projects.length === 0) return;
+
+    projects.forEach(project => {
+      // Só salva projetos que têm fluxo gerado
+      if (project.status !== 'done' && project.status !== 'ready') return;
+
+      // Cancela o timer anterior para esse projeto
+      if (saveTimerRef.current[project.id]) {
+        clearTimeout(saveTimerRef.current[project.id]);
+      }
+
+      // Agenda novo save
+      saveTimerRef.current[project.id] = setTimeout(async () => {
+        try {
+          await projectsApi.save(project, user.id);
+          console.log(`[useProjects] Auto-saved: ${project.name}`);
+        } catch (err) {
+          console.warn(`[useProjects] Falha ao salvar ${project.name}:`, err.message);
+        }
+      }, SAVE_DELAY);
+    });
+
+    // Cleanup: cancela todos os timers ao desmontar
+    return () => {
+      Object.values(saveTimerRef.current).forEach(clearTimeout);
+    };
+  }, [projects, dbReady, user?.id]);
+
+  // ─── HELPERS DERIVADOS ────────────────────────────────────────────────────
   const activeProject = projects.find(p => p.id === activeProjectId) || null;
-  const nodes = activeProject?.nodes || [];
-  const edges = activeProject?.edges || [];
-  const generated = activeProject?.status === 'done';
+  const nodes         = activeProject?.nodes || [];
+  const edges         = activeProject?.edges || [];
+  const generated     = activeProject?.status === 'done';
 
-  const updateProject = (projectId, patch) => {
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, ...patch } : p));
-  };
-
-  const addLog = (projectId, msg) => {
+  const setActiveNodes = useCallback((updater) =>
     setProjects(prev => prev.map(p =>
-      p.id === projectId ? { ...p, aiLog: [...(p.aiLog || []), msg] } : p
-    ));
-  };
+      p.id === activeProjectId
+        ? { ...p, nodes: typeof updater === 'function' ? updater(p.nodes) : updater }
+        : p
+    )), [activeProjectId, setProjects]);
 
-  const setActiveNodes = (updater) => {
+  const setActiveEdges = useCallback((updater) =>
     setProjects(prev => prev.map(p =>
-      p.id === activeProjectId ? { ...p, nodes: typeof updater === 'function' ? updater(p.nodes) : updater } : p
-    ));
-  };
+      p.id === activeProjectId
+        ? { ...p, edges: typeof updater === 'function' ? updater(p.edges) : updater }
+        : p
+    )), [activeProjectId, setProjects]);
 
-  const setActiveEdges = (updater) => {
-    setProjects(prev => prev.map(p =>
-      p.id === activeProjectId ? { ...p, edges: typeof updater === 'function' ? updater(p.edges) : updater } : p
-    ));
-  };
+  // Salva manualmente um projeto específico (botão "Salvar")
+  const saveProject = useCallback(async (projectId) => {
+    if (!user?.id || !dbReady) return;
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    setSyncing(true);
+    try {
+      // Se o projeto ainda não existe no banco, cria
+      // Se já existe, atualiza
+      await projectsApi.save(project, user.id).catch(async () => {
+        await projectsApi.create(project, user.id);
+      });
+    } catch (err) {
+      console.error('[useProjects] Erro ao salvar:', err.message);
+    } finally {
+      setSyncing(false);
+    }
+  }, [user?.id, dbReady, projects]);
+
+  // Remove projeto do estado local e do banco
+  const removeProject = useCallback(async (projectId) => {
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+
+    const remaining = projects.filter(p => p.id !== projectId);
+    setActiveProjectId(remaining[remaining.length - 1]?.id ?? null);
+
+    if (dbReady && user?.id) {
+      await projectsApi.remove(projectId, user.id).catch(() => {});
+    }
+  }, [projects, dbReady, user?.id, setProjects]);
+
+  // Limpa tudo
+  const clearProjects = useCallback(() => {
+    setProjectsRaw([]);
+    setActiveProjectId(null);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
 
   return {
-    projects, setProjects, activeProjectId, setActiveProjectId,
-    activeProject, nodes, edges, generated,
-    updateProject, addLog, setActiveNodes, setActiveEdges
+    projects,
+    setProjects,
+    activeProjectId,
+    setActiveProjectId,
+    activeProject,
+    nodes,
+    edges,
+    generated,
+    setActiveNodes,
+    setActiveEdges,
+    saveProject,
+    removeProject,
+    clearProjects,
+    syncing,
+    dbReady,
   };
-};
+}

@@ -15,7 +15,7 @@ export async function generateText(params: GenerateTextParams): Promise<string> 
   const genAI = new GoogleGenerativeAI(apiKey);
   
   const model = genAI.getGenerativeModel({
-    model: "gemini-3.5-flash",
+    model: "gemini-2.5-flash",
     systemInstruction: params.system,
     generationConfig: {
       responseMimeType: params.format === 'json' ? "application/json" : "text/plain",
