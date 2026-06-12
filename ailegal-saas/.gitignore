@@ -1,0 +1,7 @@
+# Bloqueio Global do Monorepo
+node_modules
+node_modules/
+dist
+dist/
+.env
+.DS_Store
