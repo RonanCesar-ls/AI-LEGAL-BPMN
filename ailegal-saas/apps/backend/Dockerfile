@@ -2,18 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copia o pacote compartilhado
+COPY package*.json ./
+
 COPY packages/shared-types ./packages/shared-types
 
-# Copia o backend com caminho correto a partir do contexto ailegal-saas
-COPY apps/backend/package*.json ./
-COPY apps/backend/tsconfig.json ./
-COPY apps/backend/src ./src
+COPY apps/backend/package*.json ./apps/backend/
+COPY apps/backend/tsconfig.json ./apps/backend/
+COPY apps/backend/src ./apps/backend/src
 
-# Instala dependências
 RUN npm install
 
-# Compila
+WORKDIR /app/apps/backend
 RUN npm run build
 
 EXPOSE 3000
