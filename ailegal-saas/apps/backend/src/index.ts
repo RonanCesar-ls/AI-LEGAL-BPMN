@@ -10,7 +10,14 @@ import { runMigrations }  from './database/migrations.js';
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://app.177.104.179.163.nip.io',
+    'http://localhost:5173',
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json({ limit: '10mb' })); // limit maior para o JSONB dos nodes
 
 app.use('/api/process', processRoutes);
