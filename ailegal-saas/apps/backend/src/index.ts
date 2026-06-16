@@ -22,11 +22,11 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' })); // limit maior para o JSONB dos nodes
 
-app.use('/api/auth',     authRoutes);
-app.use('/api/process', processRoutes);
-app.use('/api/projects', projectsRoutes);
-app.use('/api/timeline', timelineRoutes); 
+// ─── ROTAS PÚBLICAS ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+
+// ─── ROTAS PROTEGIDAS ────────────────────────────────────────────
+// O authMiddleware vem ANTES do roteador para garantir a injeção do req.user
 app.use('/api/projects', authMiddleware, projectsRoutes);
 app.use('/api/timeline', authMiddleware, timelineRoutes);
 app.use('/api/process',  authMiddleware, processRoutes);

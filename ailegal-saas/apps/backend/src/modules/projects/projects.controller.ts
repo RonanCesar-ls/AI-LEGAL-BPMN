@@ -5,8 +5,12 @@ export const projectsController = {
 
   list: async (req: Request, res: Response) => {
     try {
-      const userId   = (req as any).user.userId;
-      const projects = await projectRepository.findByUserId(userId);
+      const user = (req as any).user;
+      if (!user?.userId) {
+        return res.status(401).json({ error: 'Não autorizado.' });
+      }
+
+      const projects = await projectRepository.findByUserId(user.userId);
 
       return res.json(projects.map(p => ({
         id:              p.id,
@@ -30,13 +34,17 @@ export const projectsController = {
 
   create: async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user.userId;
+      const user = (req as any).user;
+      if (!user?.userId) {
+        return res.status(401).json({ error: 'Não autorizado.' });
+      }
+
       const { name, type, status, promptText, nodes, edges, processingQueue } = req.body;
 
       if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
 
       const project = await projectRepository.create({
-        userId, name, type, status, promptText, nodes, edges, processingQueue,
+        userId: user.userId, name, type, status, promptText, nodes, edges, processingQueue,
       });
 
       return res.status(201).json({
@@ -61,11 +69,15 @@ export const projectsController = {
 
   update: async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user.userId;
+      const user = (req as any).user;
+      if (!user?.userId) {
+        return res.status(401).json({ error: 'Não autorizado.' });
+      }
+
       const { id } = req.params;
       const { name, type, status, promptText, nodes, edges, processingQueue } = req.body;
 
-      const updated = await projectRepository.update(id, userId, {
+      const updated = await projectRepository.update(id, user.userId, {
         name, type, status, promptText, nodes, edges, processingQueue,
       });
 
@@ -80,9 +92,13 @@ export const projectsController = {
 
   remove: async (req: Request, res: Response) => {
     try {
-      const userId  = (req as any).user.userId;
+      const user = (req as any).user;
+      if (!user?.userId) {
+        return res.status(401).json({ error: 'Não autorizado.' });
+      }
+
       const { id }  = req.params;
-      const deleted = await projectRepository.delete(id, userId);
+      const deleted = await projectRepository.delete(id, user.userId);
 
       if (!deleted) return res.status(404).json({ error: 'Projeto não encontrado.' });
 
