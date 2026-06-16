@@ -87,6 +87,19 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
 
   // Substitui o applyStatusChange:
 
+  const handleStatusChange = async (newStatus) => {
+  if (!contextMenu) return;
+  const nodeId = contextMenu.id;
+  setContextMenu(null);
+
+  if (newStatus === 'blocked') {
+    setStatusNote('');
+    setStatusModal({ nodeId, newStatus });
+    return;
+  }
+
+  await applyStatusChange(nodeId, newStatus, undefined);
+};
 
   const applyStatusChange = async (nodeId, newStatus, note) => {
     const actor = user?.name ?? 'Usuário';
