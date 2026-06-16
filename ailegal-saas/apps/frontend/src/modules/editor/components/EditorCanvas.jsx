@@ -102,42 +102,43 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
 };
 
   const applyStatusChange = async (nodeId, newStatus, note) => {
-    const actor = user?.name ?? 'Usuário';
+  const actor = user?.name ?? 'Usuário';
 
-    setNodes(nds => nds.map(n => {
-      if (n.id !== nodeId) return n;
-      
-      const newEvent = {
-        id:         Date.now().toString(),
-        nodeId,
-        projectId,
-        actor:      user?.name ?? 'Usuário',
-        fromStatus: n.data.status ?? null,
-        toStatus:   newStatus,
-        timestamp:  new Date().toISOString(),
-        note:       note ?? undefined,
-      };
+  setNodes(nds => nds.map(n => {
+    if (n.id !== nodeId) return n;
+    const newEvent = {
+      id:         Date.now().toString(),
+      nodeId,
+      projectId,
+      actor,
+      fromStatus: n.data.status ?? null,
+      toStatus:   newStatus,
+      timestamp:  new Date().toISOString(),
+      note:       note ?? undefined,
+    };
+    return {
+      ...n,
+      data: {
+        ...n.data,
+        status:   newStatus,
+        timeline: [...(n.data.timeline ?? []), newEvent],
+      },
+    };
+  }));
 
-      return {
-        ...n,
-        data: {
-          ...n.data,
-          status:   newStatus,
-          timeline: [...(n.data.timeline || []), newEvent],
-        }
-      };
-    }));
-
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/process/nodes/${nodeId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, actor, note, projectId }),
-      });
-    } catch (err) {
-      console.error('Erro ao atualizar status:', err);
-    }
-  };
+  try {
+    await fetch(
+      `${import.meta.env.VITE_API_URL}/api/process/nodes/${nodeId}/status`,
+      {
+        method:  'PATCH',
+        headers: authApi.headers(), // ← precisa estar assim
+        body:    JSON.stringify({ status: newStatus, actor, note, projectId }),
+      }
+    );
+  } catch (err) {
+    console.error('Erro ao atualizar status:', err);
+  }
+};
 
   const handleTimeline = async () => {
   if (!contextMenu) return;
