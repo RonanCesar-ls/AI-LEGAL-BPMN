@@ -1,3 +1,4 @@
+import { timelineRepository } from '../../database/timeline.repository.js';
 import { timelineService } from './timeline.service.js';
 import { slaService }      from './sla.service.js';
 import { CorrelationService } from './correlation.service.js';
@@ -181,41 +182,91 @@ export const processController = {
 
 
   updateNodeStatus: async (req: Request, res: Response) => {
-    try {
-      const { nodeId }= req.params;
-      const { projectId, status, actor, note } = req.body;
+  try {
+    const { nodeId }   = req.params;
+    const { projectId, status, note } = req.body;
 
-      if (!projectId || !status || !actor) {
-        return res.status(400).json({ error: 'projectId, status e actor são obrigatórios.' });
-      }
+    // Actor vem do token JWT — nome real do usuário logado
+    const tokenUser = (req as any).user;
+    const actor     = req.body.actor && req.body.actor !== 'Usuário'
+      ? req.body.actor
+      : tokenUser?.name ?? 'Usuário';
 
-      const fromStatus = await timelineService.getCurrentStatus(projectId, nodeId);
-      const event = await timelineService.recordChange(projectId, nodeId, fromStatus, { status, actor, note });
-      const sla = slaService.onStatusChange(projectId, nodeId, status);
-
-      return res.json({ event, sla });
-    } catch (error) {
-      console.error('[updateNodeStatus]', error);
-      return res.status(500).json({ error: 'Falha ao atualizar status.' });
+    if (!projectId || !status) {
+      return res.status(400).json({ error: 'projectId e status são obrigatórios.' });
     }
-  },
+
+    // Busca o status anterior na memória
+    const fromStatus = await timelineService.getCurrentStatus(projectId, nodeId);
+
+    // 1. Salva na memória (para resposta rápida)
+    const event = await timelineService.recordChange(
+      projectId, nodeId, fromStatus, { status, actor, note }
+    );
+
+    // 2. Persiste no PostgreSQL (diário de bordo permanente)
+    try {
+      await timelineRepository.create({
+        projectId,
+        nodeId,
+        actor,
+        fromStatus: fromStatus ?? undefined,
+        toStatus:   status,
+        note,
+      });
+    } catch (dbErr) {
+      // Falha no banco não quebra o fluxo — memória já foi atualizada
+      console.warn('[updateNodeStatus] Falha ao persistir no banco:', (dbErr as Error).message);
+    }
+
+    // 3. Atualiza SLA
+    const sla = slaService.onStatusChange(projectId, nodeId, status);
+
+    return res.json({ event, sla });
+  } catch (error) {
+    console.error('[updateNodeStatus]', error);
+    return res.status(500).json({ error: 'Falha ao atualizar status.' });
+  }
+},
 
   getNodeTimeline: async (req: Request, res: Response) => {
-    try {
-      const { nodeId }   = req.params;
-      const { projectId } = req.query as { projectId: string };
+  try {
+    const { nodeId }    = req.params;
+    const { projectId } = req.query as { projectId: string };
 
-      if (!projectId) return res.status(400).json({ error: 'projectId é obrigatório.' });
-
-      const timeline = await timelineService.getTimeline(projectId, nodeId);
-      const sla= slaService.getSla(projectId, nodeId);
-      const status = await timelineService.getCurrentStatus(projectId, nodeId);
-
-      return res.json({ nodeId, projectId, status, timeline, sla });
-    } catch (error) {
-      return res.status(500).json({ error: 'Falha ao buscar timeline.' });
+    if (!projectId) {
+      return res.status(400).json({ error: 'projectId é obrigatório.' });
     }
-  },
+
+    // Tenta buscar do banco primeiro
+    let timeline: any[] = [];
+    try {
+      const rows = await timelineRepository.findByNodeId(projectId, nodeId);
+      timeline   = rows.map(r => ({
+        id:         r.id,
+        nodeId:     r.node_id,
+        projectId:  r.project_id,
+        actor:      r.actor,
+        fromStatus: r.from_status,
+        toStatus:   r.to_status,
+        timestamp:  r.created_at,
+        note:       r.note ?? undefined,
+      }));
+    } catch {
+      // Fallback para memória se banco indisponível
+      timeline = await timelineService.getTimeline(projectId, nodeId);
+    }
+
+    const sla    = slaService.getSla(projectId, nodeId);
+    const status = timeline.length > 0
+      ? timeline[timeline.length - 1].toStatus
+      : await timelineService.getCurrentStatus(projectId, nodeId);
+
+    return res.json({ nodeId, projectId, status, timeline, sla });
+  } catch (error) {
+    return res.status(500).json({ error: 'Falha ao buscar timeline.' });
+  }
+},
 
   initNodeSla: async (req: Request, res: Response) => {
     try {

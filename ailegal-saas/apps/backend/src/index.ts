@@ -4,8 +4,10 @@ import cors from 'cors';
 import { processRoutes }  from './modules/process/process.routes.js';
 import { projectsRoutes }  from './modules/projects/projects.routes.js';
 import { timelineRoutes } from './modules/timeline/timeline.routes.js';
+import { authRoutes }     from './modules/auth/auth.routes.js'; 
 import { testConnection } from './database/connection.js';
 import { runMigrations }  from './database/migrations.js';
+import { authMiddleware } from './middleware/auth.middleware.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -20,9 +22,15 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' })); // limit maior para o JSONB dos nodes
 
+app.use('/api/auth',     authRoutes);
 app.use('/api/process', processRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/timeline', timelineRoutes); 
+app.use('/api/auth', authRoutes);
+app.use('/api/projects', authMiddleware, projectsRoutes);
+app.use('/api/timeline', authMiddleware, timelineRoutes);
+app.use('/api/process',  authMiddleware, processRoutes);
+
 
 async function bootstrap() {
   // Testa conexão e executa migrations antes de subir o servidor
@@ -35,7 +43,7 @@ async function bootstrap() {
   }
 
   app.listen(PORT, () => {
-    console.log(` Servidor AILegal rodando na porta ${PORT}`);
+    console.log(`Servidor AILegal rodando na porta ${PORT}`);
   });
 }
 

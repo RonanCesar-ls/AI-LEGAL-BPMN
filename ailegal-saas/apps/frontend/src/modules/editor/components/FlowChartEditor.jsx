@@ -4,7 +4,7 @@ import { MousePointer2, ArrowRight } from "lucide-react";
 import { EditorCanvas } from './EditorCanvas';
 import { BPMN_COLORS } from '../../../styles/theme';
 
-export const FlowChartEditor = ({ nodes, setNodes, edges, setEdges, isReadOnly = false, projectId }) => {
+export const FlowChartEditor = ({ nodes, setNodes, edges, setEdges, isReadOnly = false, projectId, user }) => {
   const [activeTool, setActiveTool] = useState('select');
 
   const BPMN_TOOLS = [
@@ -70,6 +70,7 @@ export const FlowChartEditor = ({ nodes, setNodes, edges, setEdges, isReadOnly =
           isReadOnly={isReadOnly}
           activeTool={activeTool}  
           projectId={projectId}
+          user={user}
         />
       </div>
     </ReactFlowProvider>

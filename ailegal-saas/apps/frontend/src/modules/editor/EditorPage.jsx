@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu } from "lucide-react";
+import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard } from "lucide-react";
 import { useProjects } from "./hooks/useProjects";
 import { useFlowGenerate } from "./hooks/useFlowGenerate";
 import { FlowChartEditor } from "./components/FlowChartEditor";
@@ -8,7 +8,8 @@ import { Badge } from "../../shared/components/Badge";
 import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
 
-export const EditorPage = ({ user, onLogout }) => {
+// 1. Adicionado a propriedade onAbrirDiario aqui:
+export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
   const [view, setView]                     = useState("editor");
   const [sidebarOpen, setSidebarOpen]       = useState(true);
   const [promptFullscreen, setPromptFullscreen] = useState(false);
@@ -113,6 +114,21 @@ export const EditorPage = ({ user, onLogout }) => {
               <item.icon size={18} /> {sidebarOpen && item.label}
             </button>
           ))}
+
+          {/* 2. O NOVO BOTÃO DO DIÁRIO DE BORDO ENTRA AQUI, MANTENDO O PADRÃO */}
+          <button 
+            onClick={onAbrirDiario} 
+            style={{ 
+              display: "flex", alignItems: "center", gap: 12, padding: "12px", 
+              borderRadius: 8, border: "none", cursor: "pointer", 
+              background: "transparent", color: MUTED, 
+              fontWeight: 500, whiteSpace: "nowrap", transition: "background 0.2s"
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            <LayoutDashboard size={18} /> {sidebarOpen && "Diário de Bordo"}
+          </button>
         </div>
 
         {/* Indicador de banco */}
@@ -325,6 +341,7 @@ export const EditorPage = ({ user, onLogout }) => {
                   edges={edges}
                   setEdges={setActiveEdges}
                   projectId={activeProjectId}
+                  user={user}
                 />
               ) : (
                 <div style={{ margin: "auto", textAlign: "center", color: MUTED, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>

@@ -3,17 +3,12 @@ import { projectRepository } from '../../database/project.repository.js';
 
 export const projectsController = {
 
-  // GET /api/projects — lista projetos do usuário
   list: async (req: Request, res: Response) => {
     try {
-      // TODO: pegar userId do JWT — por ora usa query param para testar
-      const userId = req.query.userId as string;
-      if (!userId) return res.status(400).json({ error: 'userId é obrigatório.' });
-
+      const userId   = (req as any).user.userId;
       const projects = await projectRepository.findByUserId(userId);
 
-      // Converte snake_case do banco para camelCase do frontend
-      const formatted = projects.map(p => ({
+      return res.json(projects.map(p => ({
         id:              p.id,
         userId:          p.user_id,
         name:            p.name,
@@ -26,20 +21,19 @@ export const projectsController = {
         aiLog:           [],
         createdAt:       p.created_at,
         updatedAt:       p.updated_at,
-      }));
-
-      return res.json(formatted);
+      })));
     } catch (err) {
       console.error('[projects.list]', err);
       return res.status(500).json({ error: 'Falha ao buscar projetos.' });
     }
   },
 
-  // POST /api/projects — cria projeto
   create: async (req: Request, res: Response) => {
     try {
-      const { userId, name, type, status, promptText, nodes, edges, processingQueue } = req.body;
-      if (!userId || !name) return res.status(400).json({ error: 'userId e name são obrigatórios.' });
+      const userId = (req as any).user.userId;
+      const { name, type, status, promptText, nodes, edges, processingQueue } = req.body;
+
+      if (!name) return res.status(400).json({ error: 'name é obrigatório.' });
 
       const project = await projectRepository.create({
         userId, name, type, status, promptText, nodes, edges, processingQueue,
@@ -65,22 +59,14 @@ export const projectsController = {
     }
   },
 
-  // PATCH /api/projects/:id — salva fluxograma gerado
   update: async (req: Request, res: Response) => {
     try {
-      const { id }    = req.params;
-      const { userId, ...data } = req.body;
-
-      if (!userId) return res.status(400).json({ error: 'userId é obrigatório.' });
+      const userId = (req as any).user.userId;
+      const { id } = req.params;
+      const { name, type, status, promptText, nodes, edges, processingQueue } = req.body;
 
       const updated = await projectRepository.update(id, userId, {
-        name:            data.name,
-        type:            data.type,
-        status:          data.status,
-        promptText:      data.promptText,
-        nodes:           data.nodes,
-        edges:           data.edges,
-        processingQueue: data.processingQueue,
+        name, type, status, promptText, nodes, edges, processingQueue,
       });
 
       if (!updated) return res.status(404).json({ error: 'Projeto não encontrado.' });
@@ -92,15 +78,12 @@ export const projectsController = {
     }
   },
 
-  // DELETE /api/projects/:id — deleta projeto
   remove: async (req: Request, res: Response) => {
     try {
-      const { id }    = req.params;
-      const { userId } = req.query as { userId: string };
-
-      if (!userId) return res.status(400).json({ error: 'userId é obrigatório.' });
-
+      const userId  = (req as any).user.userId;
+      const { id }  = req.params;
       const deleted = await projectRepository.delete(id, userId);
+
       if (!deleted) return res.status(404).json({ error: 'Projeto não encontrado.' });
 
       return res.json({ ok: true });

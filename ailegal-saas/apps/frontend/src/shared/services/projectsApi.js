@@ -1,25 +1,22 @@
+import { authApi } from './authApi';
+
 const API = import.meta.env.VITE_API_URL;
 
-/**
- * Camada de acesso à API de projetos.
- * Isola todas as chamadas HTTP em um único lugar.
- */
 export const projectsApi = {
 
-  // Carrega todos os projetos do usuário
-  async list(userId) {
-    const res = await fetch(`${API}/api/projects?userId=${userId}`);
+  async list() {
+    const res = await fetch(`${API}/api/projects`, {
+      headers: authApi.headers(),
+    });
     if (!res.ok) throw new Error('Falha ao carregar projetos.');
     return res.json();
   },
 
-  // Cria um projeto novo no banco
-  async create(project, userId) {
+  async create(project) {
     const res = await fetch(`${API}/api/projects`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApi.headers(),
       body:    JSON.stringify({
-        userId,
         name:            project.name,
         type:            project.type            ?? 'Automático',
         status:          project.status          ?? 'idle',
@@ -33,13 +30,11 @@ export const projectsApi = {
     return res.json();
   },
 
-  // Salva o estado atual do projeto (nodes, edges, status)
-  async save(project, userId) {
+  async save(project) {
     const res = await fetch(`${API}/api/projects/${project.id}`, {
       method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authApi.headers(),
       body:    JSON.stringify({
-        userId,
         name:            project.name,
         type:            project.type,
         status:          project.status,
@@ -53,10 +48,10 @@ export const projectsApi = {
     return res.json();
   },
 
-  // Deleta um projeto
-  async remove(projectId, userId) {
-    const res = await fetch(`${API}/api/projects/${projectId}?userId=${userId}`, {
-      method: 'DELETE',
+  async remove(projectId) {
+    const res = await fetch(`${API}/api/projects/${projectId}`, {
+      method:  'DELETE',
+      headers: authApi.headers(),
     });
     if (!res.ok) throw new Error('Falha ao deletar projeto.');
     return res.json();

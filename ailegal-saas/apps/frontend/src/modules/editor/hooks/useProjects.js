@@ -48,7 +48,7 @@ export function useProjects(user) {
     async function loadFromDb() {
       setSyncing(true);
       try {
-        const dbProjects = await projectsApi.list(user.id);
+        const dbProjects = await projectsApi.list();
 
         if (dbProjects.length > 0) {
           // Banco tem dados — usa eles como fonte de verdade
@@ -61,7 +61,7 @@ export function useProjects(user) {
           const local = loadLocal();
           if (local.length > 0) {
             await Promise.all(
-              local.map(p => projectsApi.create(p, user.id).catch(() => {}))
+              local.map(p => projectsApi.create(p).catch(() => {}))
             );
           }
         }
@@ -94,7 +94,7 @@ export function useProjects(user) {
       // Agenda novo save
       saveTimerRef.current[project.id] = setTimeout(async () => {
         try {
-          await projectsApi.save(project, user.id);
+          await projectsApi.save(project);
           console.log(`[useProjects] Auto-saved: ${project.name}`);
         } catch (err) {
           console.warn(`[useProjects] Falha ao salvar ${project.name}:`, err.message);
@@ -138,8 +138,8 @@ export function useProjects(user) {
     try {
       // Se o projeto ainda não existe no banco, cria
       // Se já existe, atualiza
-      await projectsApi.save(project, user.id).catch(async () => {
-        await projectsApi.create(project, user.id);
+      await projectsApi.save(project).catch(async () => {
+        await projectsApi.create(project);
       });
     } catch (err) {
       console.error('[useProjects] Erro ao salvar:', err.message);
@@ -156,7 +156,7 @@ export function useProjects(user) {
     setActiveProjectId(remaining[remaining.length - 1]?.id ?? null);
 
     if (dbReady && user?.id) {
-      await projectsApi.remove(projectId, user.id).catch(() => {});
+      await projectsApi.remove(projectId).catch(() => {});
     }
   }, [projects, dbReady, user?.id, setProjects]);
 

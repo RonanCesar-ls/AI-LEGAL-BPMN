@@ -1,10 +1,11 @@
+import { authApi } from '../../../shared/services/authApi';
 import { useState, useCallback, useMemo } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, applyNodeChanges, applyEdgeChanges, addEdge, useReactFlow } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { nodeTypes } from '../nodes/nodeTypes';
 import { ContextMenu } from './ContextMenu';
 
-export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, activeTool, projectId }) => {
+export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, activeTool, projectId, user }) => {
   const reactFlowInstance = useReactFlow();
   const [contextMenu, setContextMenu] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -84,22 +85,11 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
     setContextMenu(null);
   };
 
-  const handleStatusChange = async (newStatus) => {
-    if (!contextMenu) return;
-    const nodeId = contextMenu.id;
-    setContextMenu(null);
+  // Substitui o applyStatusChange:
 
-    if (newStatus === 'blocked') {
-      setStatusNote('');
-      setStatusModal({ nodeId, newStatus });
-      return;
-    }
-
-    await applyStatusChange(nodeId, newStatus, undefined);
-  };
 
   const applyStatusChange = async (nodeId, newStatus, note) => {
-    const actor = 'Usuário';
+    const actor = user?.name ?? 'Usuário';
 
     setNodes(nds => nds.map(n => {
       if (n.id !== nodeId) return n;
@@ -108,7 +98,7 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
         id:         Date.now().toString(),
         nodeId,
         projectId,
-        actor:      actor,
+        actor:      user?.name ?? 'Usuário',
         fromStatus: n.data.status ?? null,
         toStatus:   newStatus,
         timestamp:  new Date().toISOString(),
@@ -137,19 +127,33 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
   };
 
   const handleTimeline = async () => {
-    if (!contextMenu) return;
-    const nodeId = contextMenu.id;
-    const node   = nodes.find(n => n.id === nodeId);
-    setContextMenu(null);
+  if (!contextMenu) return;
+  const nodeId = contextMenu.id;
+  const node   = nodes.find(n => n.id === nodeId);
+  setContextMenu(null);
 
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/process/nodes/${nodeId}/timeline?projectId=${projectId}`);
-      const data = await res.json();
-      setTimelineModal({ nodeId, nodeLabel: node?.data?.label || nodeId, ...data });
-    } catch {
-      setTimelineModal({ nodeId, nodeLabel: node?.data?.label || nodeId, timeline: [], sla: null, status: null });
-    }
-  };
+  try {
+    const res  = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/process/nodes/${nodeId}/timeline?projectId=${projectId}`,
+      { headers: authApi.headers() } // ← token no header
+    );
+    const data = await res.json();
+    setTimelineModal({
+      nodeId,
+      nodeLabel: node?.data?.label || nodeId,
+      ...data,
+    });
+  } catch {
+    setTimelineModal({
+      nodeId,
+      nodeLabel: node?.data?.label || nodeId,
+      timeline:  [],
+      sla:       null,
+      status:    null,
+    });
+  }
+};
+
 
   const commitEdit = () => {
     if (!editingId) return;
