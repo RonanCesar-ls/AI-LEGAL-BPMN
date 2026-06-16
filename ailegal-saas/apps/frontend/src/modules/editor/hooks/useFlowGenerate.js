@@ -39,6 +39,33 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
     setGenerating(true);
 
+    // ─── TRAVA DE SEGURANÇA: Aguarda o projeto existir no estado ───
+    let targetProject = null;
+    setProjects(prev => {
+      targetProject = prev.find(p => p.id === targetProjectId) ?? null;
+      return prev; // não muda nada, só lê
+    });
+
+    // Aguarda o React processar a criação da aba
+    await new Promise(r => setTimeout(r, 100));
+
+    if (!targetProject) {
+      // Tenta de novo após delay maior caso o React tenha demorado
+      await new Promise(r => setTimeout(r, 500));
+      setProjects(prev => {
+        targetProject = prev.find(p => p.id === targetProjectId) ?? null;
+        return prev;
+      });
+    }
+
+    // Se mesmo assim o projeto não existir, aborta para não quebrar a tela
+    if (!targetProject) {
+      console.error("Erro: Projeto não encontrado no estado para extração.");
+      setGenerating(false);
+      return;
+    }
+    // ───────────────────────────────────────────────────────────────
+
     const queueItems = files.map(file => ({
       id:       `qi_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       fileName: file.name,

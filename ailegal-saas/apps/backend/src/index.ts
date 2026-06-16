@@ -17,7 +17,7 @@ app.use(cors({
     'http://app.177.104.179.163.nip.io',
     'http://localhost:5173',
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json({ limit: '10mb' })); // limit maior para o JSONB dos nodes
