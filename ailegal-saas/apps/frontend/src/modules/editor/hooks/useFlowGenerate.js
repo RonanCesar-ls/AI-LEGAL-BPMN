@@ -82,6 +82,8 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
     });
 
     try {
+      const token = localStorage.getItem('token'); // Pega o crachá do usuário logado
+
       // Extrai todos em paralelo
       const extractedTexts = await Promise.all(
         files.map(async (file, idx) => {
@@ -95,6 +97,9 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
           const res = await fetch(`${API}/api/process/extract-prompt`, {
             method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
+            },
             body: formData,
           });
 
@@ -155,6 +160,8 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
     updateProject(targetProjectId, { status: 'generating', nodes: [], edges: [] });
 
     try {
+      const token = localStorage.getItem('token'); // Pega o crachá do usuário logado
+      
       const queue = (targetProject?.processingQueue ?? [])
         .filter(item => item.extractedPrompt);
 
@@ -170,7 +177,10 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
         const baseRes = await fetch(`${API}/api/process/generate`, {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
+          },
           body:    JSON.stringify({
             prompt:         queue[0].extractedPrompt,
             sourceFileName: queue[0].fileName,
@@ -195,7 +205,10 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
           const mergeRes = await fetch(`${API}/api/process/generate-merge`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
+            },
             body:    JSON.stringify({
               existingGraph:   currentGraph,
               newDocumentText: item.extractedPrompt,
@@ -238,7 +251,10 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
         const res = await fetch(`${API}/api/process/generate`, {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
+          },
           body:    JSON.stringify({
             prompt,
             sourceFileName: hasSingleQueue ? queue[0].fileName : undefined,
