@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { getLayoutedElements } from '../../../shared/utils/layout';
+import { authApi } from '../../../shared/services/authApi';
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -32,25 +33,21 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
     }));
   }, [setProjects]);
 
-  // ─── FASE 1: só extrai texto e preenche o textarea ────────────────────────
   const runQueueExtraction = useCallback(async (files, overrideProjectId) => {
     const targetProjectId = overrideProjectId ?? activeProjectId;
     if (!files?.length || !targetProjectId) return;
 
     setGenerating(true);
 
-    // ─── TRAVA DE SEGURANÇA: Aguarda o projeto existir no estado ───
     let targetProject = null;
     setProjects(prev => {
       targetProject = prev.find(p => p.id === targetProjectId) ?? null;
-      return prev; // não muda nada, só lê
+      return prev;
     });
 
-    // Aguarda o React processar a criação da aba
     await new Promise(r => setTimeout(r, 100));
 
     if (!targetProject) {
-      // Tenta de novo após delay maior caso o React tenha demorado
       await new Promise(r => setTimeout(r, 500));
       setProjects(prev => {
         targetProject = prev.find(p => p.id === targetProjectId) ?? null;
@@ -58,13 +55,11 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
       });
     }
 
-    // Se mesmo assim o projeto não existir, aborta para não quebrar a tela
     if (!targetProject) {
       console.error("Erro: Projeto não encontrado no estado para extração.");
       setGenerating(false);
       return;
     }
-    // ───────────────────────────────────────────────────────────────
 
     const queueItems = files.map(file => ({
       id:       `qi_${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -82,9 +77,6 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
     });
 
     try {
-      const token = localStorage.getItem('token'); // Pega o crachá do usuário logado
-
-      // Extrai todos em paralelo
       const extractedTexts = await Promise.all(
         files.map(async (file, idx) => {
           const itemId = queueItems[idx].id;
@@ -95,11 +87,12 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
           const formData = new FormData();
           formData.append('file', file);
 
+          const headers = authApi.headers();
+          delete headers['Content-Type'];
+
           const res = await fetch(`${API}/api/process/extract-prompt`, {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
-            },
+            headers,
             body: formData,
           });
 
@@ -118,7 +111,6 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
         })
       );
 
-      // Concatena no textarea para o usuário revisar
       const combinedPrompt = extractedTexts
         .map(({ fileName, text }) =>
           files.length > 1 ? `[${fileName}]\n${text}` : text
@@ -140,28 +132,23 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
     }
   }, [activeProjectId, setProjects, updateProject, addLog, updateQueueItem]);
 
-  // ─── FASE 2: gera o fluxo — lê a fila já extraída ou usa promptText ───────
   const runQueueGeneration = useCallback(async (overrideProjectId) => {
     const targetProjectId = overrideProjectId ?? activeProjectId;
     if (!targetProjectId) return;
 
     setGenerating(true);
 
-    // Lê o projeto atual do estado
     let targetProject = null;
     setProjects(prev => {
       targetProject = prev.find(p => p.id === targetProjectId) ?? null;
       return prev;
     });
 
-    // Aguarda o React processar a leitura
     await new Promise(r => setTimeout(r, 0));
 
     updateProject(targetProjectId, { status: 'generating', nodes: [], edges: [] });
 
     try {
-      const token = localStorage.getItem('token'); // Pega o crachá do usuário logado
-      
       const queue = (targetProject?.processingQueue ?? [])
         .filter(item => item.extractedPrompt);
 
@@ -169,7 +156,6 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
       const hasSingleQueue = queue.length === 1;
 
       if (hasMultiQueue) {
-        // ── MERGE INCREMENTAL: múltiplos arquivos na mesma aba ───────────────
         addLog(targetProjectId, `── Gerando fluxograma integrado (${queue.length} arquivos)...`);
 
         updateQueueItem(targetProjectId, queue[0].id, { status: 'generating' });
@@ -177,10 +163,7 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
         const baseRes = await fetch(`${API}/api/process/generate`, {
           method:  'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
-          },
+          headers: authApi.headers(),
           body:    JSON.stringify({
             prompt:         queue[0].extractedPrompt,
             sourceFileName: queue[0].fileName,
@@ -193,11 +176,9 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
         updateQueueItem(targetProjectId, queue[0].id, { status: 'done' });
         addLog(targetProjectId, `✓ Base gerada (${currentGraph.nodes?.length ?? 0} nós)`);
 
-        // Preview parcial
         const partial1 = getLayoutedElements(currentGraph.nodes, currentGraph.edges);
         updateProject(targetProjectId, { nodes: partial1.nodes, edges: partial1.edges });
 
-        // Merge com cada arquivo seguinte
         for (let i = 1; i < queue.length; i++) {
           const item = queue[i];
           updateQueueItem(targetProjectId, item.id, { status: 'generating' });
@@ -205,10 +186,7 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
           const mergeRes = await fetch(`${API}/api/process/generate-merge`, {
             method:  'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
-            },
+            headers: authApi.headers(),
             body:    JSON.stringify({
               existingGraph:   currentGraph,
               newDocumentText: item.extractedPrompt,
@@ -236,7 +214,6 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
         addLog(targetProjectId, `✅ Pronto! ${finalLayout.nodes.filter(n => n.type !== 'swimlane').length} nós em ${queue.length} processo(s).`);
 
       } else {
-        // ── TEXTO DIRETO: 1 arquivo ou digitado pelo usuário ─────────────────
         const prompt = hasSingleQueue
           ? queue[0].extractedPrompt
           : (targetProject?.promptText ?? '');
@@ -251,10 +228,7 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
         const res = await fetch(`${API}/api/process/generate`, {
           method:  'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // INJETANDO O TOKEN AQUI
-          },
+          headers: authApi.headers(),
           body:    JSON.stringify({
             prompt,
             sourceFileName: hasSingleQueue ? queue[0].fileName : undefined,
@@ -287,7 +261,6 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
     }
   }, [activeProjectId, setProjects, updateProject, addLog, updateQueueItem]);
 
-  // ─── TEXTO DIRETO (sem arquivo) ───────────────────────────────────────────
   const runTextGeneration = useCallback(async (promptText) => {
     if (!promptText?.trim() || !activeProjectId) return;
     await runQueueGeneration(activeProjectId);

@@ -4,6 +4,9 @@ import { projectsApi } from '../../../shared/services/projectsApi';
 const STORAGE_KEY  = 'ailegal_projects';
 const SAVE_DELAY   = 2000; // salva 2s após última mudança (debounce)
 
+// Helper para validar UUID
+const isValidUuid = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
 function loadLocal() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -82,45 +85,40 @@ export function useProjects(user) {
   useEffect(() => {
     if (!dbReady || !user?.id || projects.length === 0) return;
 
-    // No useEffect de auto-save, quando o projeto não existe no banco ainda,
-// cria e atualiza o ID local com o UUID retornado pelo banco
-projects.forEach(project => {
-  if (project.status !== 'done' && project.status !== 'ready') return;
+    projects.forEach(project => {
+      if (project.status !== 'done' && project.status !== 'ready') return;
 
-  if (saveTimerRef.current[project.id]) {
-    clearTimeout(saveTimerRef.current[project.id]);
-  }
-
-  saveTimerRef.current[project.id] = setTimeout(async () => {
-    try {
-      // Tenta atualizar — se falhar (ID inválido), cria novo
-      const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(project.id);
-
-      if (!isValidUuid) {
-        // ID local — cria no banco e substitui o ID
-        const created = await projectsApi.create(project);
-        // Atualiza o ID no estado local pelo UUID real do banco
-        setProjectsRaw(prev => {
-          const updated = prev.map(p =>
-            p.id === project.id ? { ...p, id: created.id } : p
-          );
-          saveLocal(updated);
-          return updated;
-        });
-        setActiveProjectId(prev =>
-          prev === project.id ? created.id : prev
-        );
-        console.log(`[useProjects] Criado no banco: ${project.name} → ${created.id}`);
-      } else {
-        // UUID válido — só atualiza
-        await projectsApi.save(project);
-        console.log(`[useProjects] Auto-saved: ${project.name}`);
+      if (saveTimerRef.current[project.id]) {
+        clearTimeout(saveTimerRef.current[project.id]);
       }
-    } catch (err) {
-      console.warn(`[useProjects] Falha ao salvar ${project.name}:`, err.message);
-    }
-  }, SAVE_DELAY);
-});
+
+      saveTimerRef.current[project.id] = setTimeout(async () => {
+        try {
+          if (!isValidUuid(project.id)) {
+            // ID local — cria no banco e substitui o ID
+            const created = await projectsApi.create(project);
+            
+            // Atualiza o ID no estado local pelo UUID real do banco
+            setProjectsRaw(prev => {
+              const updated = prev.map(p =>
+                p.id === project.id ? { ...p, id: created.id } : p
+              );
+              saveLocal(updated);
+              return updated;
+            });
+            setActiveProjectId(prev => prev === project.id ? created.id : prev);
+            
+            console.log(`[useProjects] Criado no banco: ${project.name} → ${created.id}`);
+          } else {
+            // UUID válido — só atualiza
+            await projectsApi.save(project);
+            console.log(`[useProjects] Auto-saved: ${project.name}`);
+          }
+        } catch (err) {
+          console.warn(`[useProjects] Falha ao salvar ${project.name}:`, err.message);
+        }
+      }, SAVE_DELAY);
+    });
 
     // Cleanup: cancela todos os timers ao desmontar
     return () => {
@@ -156,11 +154,18 @@ projects.forEach(project => {
 
     setSyncing(true);
     try {
-      // Se o projeto ainda não existe no banco, cria
-      // Se já existe, atualiza
-      await projectsApi.save(project).catch(async () => {
-        await projectsApi.create(project);
-      });
+      // CORREÇÃO: Aplica a mesma lógica de validação de UUID no salvamento manual
+      if (!isValidUuid(project.id)) {
+        const created = await projectsApi.create(project);
+        setProjectsRaw(prev => {
+          const updated = prev.map(p => p.id === project.id ? { ...p, id: created.id } : p);
+          saveLocal(updated);
+          return updated;
+        });
+        setActiveProjectId(prev => prev === project.id ? created.id : prev);
+      } else {
+        await projectsApi.save(project);
+      }
     } catch (err) {
       console.error('[useProjects] Erro ao salvar:', err.message);
     } finally {
@@ -175,7 +180,8 @@ projects.forEach(project => {
     const remaining = projects.filter(p => p.id !== projectId);
     setActiveProjectId(remaining[remaining.length - 1]?.id ?? null);
 
-    if (dbReady && user?.id) {
+    // CORREÇÃO: Só tenta deletar do banco se o ID for um UUID válido
+    if (dbReady && user?.id && isValidUuid(projectId)) {
       await projectsApi.remove(projectId).catch(() => {});
     }
   }, [projects, dbReady, user?.id, setProjects]);
