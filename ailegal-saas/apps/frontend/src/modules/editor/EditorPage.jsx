@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard, Presentation } from "lucide-react";
 import { useProjects } from "./hooks/useProjects";
 import { useFlowGenerate } from "./hooks/useFlowGenerate";
 import { FlowChartEditor } from "./components/FlowChartEditor";
@@ -8,13 +8,20 @@ import { Badge } from "../../shared/components/Badge";
 import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
 
-// 1. Adicionado a propriedade onAbrirDiario aqui:
+// Componentes da Apresentação
+import { PresentationModal } from './components/PresentationModal';
+import { FullscreenPresentation } from './components/FullscreenPresentation';
+
 export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
   const [view, setView]                     = useState("editor");
   const [sidebarOpen, setSidebarOpen]       = useState(true);
   const [promptFullscreen, setPromptFullscreen] = useState(false);
   const [uploadChoiceModal, setUploadChoiceModal] = useState(null);
   const fileInputRef = useRef(null);
+
+  // ─── ESTADOS DA APRESENTAÇÃO ──────────────────────────────────────────────
+  const [presentationModal, setPresentationModal] = useState(false);
+  const [presentationMode, setPresentationMode]    = useState(null); // 'fullscreen' | 'walkthrough' | null
 
   // ─── HOOK DE PROJETOS ────────────────────────────────────────────────────
   const {
@@ -24,7 +31,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
     setActiveNodes, setActiveEdges,
     saveProject, removeProject,
     syncing, dbReady,
-  } = useProjects(user); // ← passa o user para carregar do banco
+  } = useProjects(user);
 
   // ─── HOOK DE GERAÇÃO ─────────────────────────────────────────────────────
   const { generating, runQueueExtraction, runQueueGeneration } = useFlowGenerate({
@@ -87,6 +94,22 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
     runQueueGeneration(activeProjectId);
   };
 
+  // ─── HANDLERS DE APRESENTAÇÃO ─────────────────────────────────────────────
+  const handleSelectPresentationMode = (mode) => {
+    setPresentationModal(false);
+    setPresentationMode(mode);
+  };
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape' && presentationMode) {
+        setPresentationMode(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [presentationMode]);
+
   const sidebarMenu = [
     { id: "editor", icon: GitBranch, label: "Editor BPMN" },
     { id: "novo",   icon: Plus,      label: "Novo Projeto" },
@@ -115,7 +138,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
             </button>
           ))}
 
-          {/* 2. O NOVO BOTÃO DO DIÁRIO DE BORDO ENTRA AQUI, MANTENDO O PADRÃO */}
           <button 
             onClick={onAbrirDiario} 
             style={{ 
@@ -167,7 +189,18 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              {/* Botão Salvar — agora usa saveProject */}
+              
+              {/* Botão Apresentar */}
+              <Btn 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setPresentationModal(true)} 
+                disabled={!generated}
+              >
+                <Presentation size={14} /> Apresentar
+              </Btn>
+
+              {/* Botão Salvar */}
               <Btn
                 variant="outline"
                 size="sm"
@@ -203,7 +236,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
                     : <span style={{ color: GOLD }}>○</span>
                   }
                   {proj.name}
-                  {/* Botão fechar — agora usa removeProject */}
+                  {/* Botão fechar */}
                   <button
                     onClick={e => { e.stopPropagation(); removeProject(proj.id); }}
                     style={{ background: "none", border: "none", cursor: "pointer", color: MUTED, padding: 0, display: "flex" }}
@@ -512,6 +545,22 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
               </button>
             </div>
           </div>
+        )}
+
+        {/* ── MODAIS DE APRESENTAÇÃO ────────────────────────────────────────── */}
+        {presentationModal && (
+          <PresentationModal
+            onClose={() => setPresentationModal(false)}
+            onSelectMode={handleSelectPresentationMode}
+          />
+        )}
+        
+        {presentationMode === 'fullscreen' && (
+          <FullscreenPresentation
+            nodes={nodes}
+            edges={edges}
+            onExit={() => setPresentationMode(null)}
+          />
         )}
 
       </div>
