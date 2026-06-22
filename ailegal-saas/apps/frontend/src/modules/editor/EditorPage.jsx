@@ -7,6 +7,7 @@ import { GlobalTimeline } from './components/GlobalTimeline';
 import { Badge } from "../../shared/components/Badge";
 import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
+import { WalkthroughPresentation } from './components/WalkthroughPresentation';
 
 // Componentes da Apresentação
 import { PresentationModal } from './components/PresentationModal';
@@ -557,6 +558,14 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
         
         {presentationMode === 'fullscreen' && (
           <FullscreenPresentation
+            nodes={nodes}
+            edges={edges}
+            onExit={() => setPresentationMode(null)}
+          />
+        )}
+
+        {presentationMode === 'walkthrough' && (
+          <WalkthroughPresentation
             nodes={nodes}
             edges={edges}
             onExit={() => setPresentationMode(null)}
