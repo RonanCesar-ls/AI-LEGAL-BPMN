@@ -9,6 +9,7 @@ import { testConnection } from './database/connection.js';
 import { runMigrations }  from './database/migrations.js';
 import { authMiddleware } from './middleware/auth.middleware.js';
 import { tasksRoutes } from './modules/tasks/tasks.routes.js';
+import { usersRoutes } from './modules/users/users.routes.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,7 @@ app.use('/api/projects', authMiddleware, projectsRoutes);
 app.use('/api/timeline', authMiddleware, timelineRoutes);
 app.use('/api/process',  authMiddleware, processRoutes);
 app.use('/api/tasks', authMiddleware, tasksRoutes);
+app.use('/api/users', authMiddleware, usersRoutes);
 
 
 async function bootstrap() {
