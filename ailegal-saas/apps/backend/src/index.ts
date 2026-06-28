@@ -8,6 +8,7 @@ import { authRoutes }     from './modules/auth/auth.routes.js';
 import { testConnection } from './database/connection.js';
 import { runMigrations }  from './database/migrations.js';
 import { authMiddleware } from './middleware/auth.middleware.js';
+import { tasksRoutes } from './modules/tasks/tasks.routes.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -20,20 +21,19 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(express.json({ limit: '10mb' })); // limit maior para o JSONB dos nodes
+app.use(express.json({ limit: '10mb' })); 
 
-// ─── ROTAS PÚBLICAS ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 
-// ─── ROTAS PROTEGIDAS ────────────────────────────────────────────
-// O authMiddleware vem ANTES do roteador para garantir a injeção do req.user
+
 app.use('/api/projects', authMiddleware, projectsRoutes);
 app.use('/api/timeline', authMiddleware, timelineRoutes);
 app.use('/api/process',  authMiddleware, processRoutes);
+app.use('/api/tasks', authMiddleware, tasksRoutes);
 
 
 async function bootstrap() {
-  // Testa conexão e executa migrations antes de subir o servidor
+
   const dbOk = await testConnection();
 
   if (dbOk) {
