@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Landing }    from './modules/landing/Landing';
-import { Login }      from './modules/auth/Login';
-import { Cadastro }   from './modules/auth/Cadastro';
-import { EditorPage } from './modules/editor/EditorPage';
-import { authApi }    from './shared/services/authApi';
+import { Landing }            from './modules/landing/Landing';
+import { Login }              from './modules/auth/Login';
+import { Cadastro }           from './modules/auth/Cadastro';
+import { EditorPage }         from './modules/editor/EditorPage';
+import { DiarioDeBordoPage }  from './modules/diario/DiarioDeBordoPage';
+import { authApi }            from './shared/services/authApi';
 
 export default function App() {
-  const [screen, setScreen]   = useState('loading'); // ← começa em loading
+  const [screen, setScreen]   = useState('loading');
   const [user, setUser]       = useState(null);
 
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function App() {
       const session = authApi.loadSession();
 
       if (!session) {
-        setScreen('landing'); // sem sessão → landing
+        setScreen('landing');
         return;
       }
 
@@ -74,7 +75,21 @@ export default function App() {
       {screen === 'landing'  && <Landing   onLogin={() => setScreen('login')} onCadastro={() => setScreen('cadastro')} />}
       {screen === 'login'    && <Login     onLogin={handleLogin} onCadastro={() => setScreen('cadastro')} onBack={() => setScreen('landing')} />}
       {screen === 'cadastro' && <Cadastro  onLogin={handleLogin} onBack={() => setScreen('login')} />}
-      {screen === 'app'      && user && <EditorPage user={user} onLogout={handleLogout} />}
+
+      {screen === 'app' && user && (
+        <EditorPage
+          user={user}
+          onLogout={handleLogout}
+          onAbrirDiario={() => setScreen('diario')}
+        />
+      )}
+
+      {screen === 'diario' && user && (
+        <DiarioDeBordoPage
+          user={user}
+          onVoltar={() => setScreen('app')}
+        />
+      )}
     </>
   );
 }
