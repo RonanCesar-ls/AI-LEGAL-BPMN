@@ -121,4 +121,20 @@ export const taskRepository = {
     `, [userId, daysBack]);
     return parseFloat(result.rows[0]?.avg_per_day ?? '0');
   },
+
+  async existsForNodeAndDate(projectId: string, nodeId: string, taskDate: string): Promise<boolean> {
+    const result = await pool.query(`
+      SELECT id FROM tasks
+      WHERE project_id = $1 AND node_id = $2 AND task_date = $3
+      LIMIT 1
+    `, [projectId, nodeId, taskDate]);
+    return result.rows.length > 0;
+  },
+
+  async findUserByName(name: string): Promise<{ id: string; name: string } | null> {
+    const result = await pool.query(`
+      SELECT id, name FROM users WHERE LOWER(name) = LOWER($1) LIMIT 1
+    `, [name]);
+    return result.rows[0] ?? null;
+  },
 };

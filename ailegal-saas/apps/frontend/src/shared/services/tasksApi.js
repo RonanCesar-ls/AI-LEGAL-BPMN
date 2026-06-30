@@ -59,4 +59,13 @@ export const tasksApi = {
     if (!res.ok) throw new Error('Falha ao realocar tarefas.');
     return res.json();
   },
+  async generateFromProject(projectId, taskDate) {
+  const res = await fetch(`${API}/api/tasks/generate-from-project`, {
+    method:  'POST',
+    headers: authApi.headers(),
+    body:    JSON.stringify({ projectId, taskDate }),
+  });
+  if (!res.ok) throw new Error('Falha ao gerar tarefas.');
+  return res.json();
+},
 };

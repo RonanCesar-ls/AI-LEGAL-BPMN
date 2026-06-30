@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard, Presentation } from "lucide-react";
+import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard, Presentation, ListTodo } from "lucide-react";
 import { useProjects } from "./hooks/useProjects";
 import { useFlowGenerate } from "./hooks/useFlowGenerate";
 import { FlowChartEditor } from "./components/FlowChartEditor";
@@ -8,8 +8,8 @@ import { Badge } from "../../shared/components/Badge";
 import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
 import { WalkthroughPresentation } from './components/WalkthroughPresentation';
+import { tasksApi } from '../../shared/services/tasksApi'; 
 
-// Componentes da Apresentação
 import { PresentationModal } from './components/PresentationModal';
 import { FullscreenPresentation } from './components/FullscreenPresentation';
 
@@ -20,11 +20,11 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
   const [uploadChoiceModal, setUploadChoiceModal] = useState(null);
   const fileInputRef = useRef(null);
 
-  // ─── ESTADOS DA APRESENTAÇÃO ──────────────────────────────────────────────
   const [presentationModal, setPresentationModal] = useState(false);
-  const [presentationMode, setPresentationMode]    = useState(null); // 'fullscreen' | 'walkthrough' | null
+  const [presentationMode, setPresentationMode]    = useState(null);
 
-  // ─── HOOK DE PROJETOS ────────────────────────────────────────────────────
+  const [generatingTasks, setGeneratingTasks] = useState(false);
+
   const {
     projects, setProjects,
     activeProjectId, setActiveProjectId,
@@ -34,13 +34,11 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
     syncing, dbReady,
   } = useProjects(user);
 
-  // ─── HOOK DE GERAÇÃO ─────────────────────────────────────────────────────
   const { generating, runQueueExtraction, runQueueGeneration } = useFlowGenerate({
     activeProjectId,
     setProjects,
   });
 
-  // ─── UPLOAD ───────────────────────────────────────────────────────────────
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -90,12 +88,27 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
     }
   };
 
-  // ─── GERAÇÃO ──────────────────────────────────────────────────────────────
   const handleRunGenerate = () => {
     runQueueGeneration(activeProjectId);
   };
 
-  // ─── HANDLERS DE APRESENTAÇÃO ─────────────────────────────────────────────
+  const handleGenerateTasksFromFlow = async () => {
+    if (!activeProjectId) return;
+    setGeneratingTasks(true);
+    
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      
+      const result = await tasksApi.generateFromProject(activeProjectId, today);
+      
+      alert(`✅ Sucesso! \n\n${result.createdCount} tarefa(s) delegada(s) pro Diário de Bordo de hoje.${result.skippedCount ? `\n(${result.skippedCount} já existiam e foram ignoradas)` : ''}`);
+    } catch (err) {
+      alert('Erro ao gerar tarefas: ' + err.message);
+    } finally {
+      setGeneratingTasks(false);
+    }
+  };
+
   const handleSelectPresentationMode = (mode) => {
     setPresentationModal(false);
     setPresentationMode(mode);
@@ -120,7 +133,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
   return (
     <div style={{ display: "flex", height: "100vh", background: BG, color: TEXT, fontFamily: "'DM Sans', sans-serif", overflow: "hidden" }}>
 
-      {/* ── SIDEBAR ─────────────────────────────────────────────────────────── */}
       <div style={{ width: sidebarOpen ? 220 : 64, background: SURFACE, borderRight: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", transition: "width .2s" }}>
         <div style={{ padding: "18px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${BORDER}` }}>
           <div style={{ background: `${GOLD}22`, borderRadius: 8, padding: 8, flexShrink: 0 }}>
@@ -154,7 +166,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
           </button>
         </div>
 
-        {/* Indicador de banco */}
         {sidebarOpen && (
           <div style={{ padding: "8px 16px", borderTop: `1px solid ${BORDER}` }}>
             <span style={{ fontSize: 10, color: dbReady ? '#22c55e' : '#94a3b8', fontWeight: 600 }}>
@@ -170,10 +181,8 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
         </div>
       </div>
 
-      {/* ── ÁREA PRINCIPAL ──────────────────────────────────────────────────── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-        {/* Header */}
         <div style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}` }}>
           <div style={{ height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 600 }}>
@@ -191,7 +200,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
 
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               
-              {/* Botão Apresentar */}
               <Btn 
                 variant="outline" 
                 size="sm" 
@@ -200,8 +208,19 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
               >
                 <Presentation size={14} /> Apresentar
               </Btn>
+              <Btn
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateTasksFromFlow}
+                disabled={!generated || generatingTasks}
+              >
+                {generatingTasks
+                  ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                  : <LayoutDashboard size={14} />
+                }
+                {generatingTasks ? 'Gerando...' : 'Gerar Tarefas'}
+              </Btn>
 
-              {/* Botão Salvar */}
               <Btn
                 variant="outline"
                 size="sm"
@@ -221,7 +240,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
             </div>
           </div>
 
-          {/* Abas dos projetos */}
           {projects.length > 0 && (
             <div style={{ display: "flex", gap: 2, padding: "0 16px", overflowX: "auto" }}>
               {projects.map(proj => (
@@ -237,7 +255,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
                     : <span style={{ color: GOLD }}>○</span>
                   }
                   {proj.name}
-                  {/* Botão fechar */}
                   <button
                     onClick={e => { e.stopPropagation(); removeProject(proj.id); }}
                     style={{ background: "none", border: "none", cursor: "pointer", color: MUTED, padding: 0, display: "flex" }}
@@ -250,11 +267,9 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
           )}
         </div>
 
-        {/* ── VIEW EDITOR ───────────────────────────────────────────────────── */}
         {view === "editor" && (
           <div style={{ flex: 1, display: "grid", gridTemplateColumns: "260px 1fr 260px", overflow: "hidden" }}>
 
-            {/* Painel esquerdo */}
             <div style={{ background: SURFACE, borderRight: `1px solid ${BORDER}`, padding: 16, overflow: "auto", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
@@ -310,7 +325,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
                 {generating ? "Gerando..." : "Gerar Fluxograma"}
               </Btn>
 
-              {/* Fila de processamento */}
               {activeProject?.processingQueue?.length > 0 && (
                 <div style={{ marginBottom: 12 }}>
                   <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
@@ -340,7 +354,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
                 </div>
               )}
 
-              {/* Log de processamento */}
               <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, marginTop: 'auto' }}>
                 Log de Processamento
               </p>
@@ -355,7 +368,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
               </div>
             </div>
 
-            {/* Canvas central */}
             <div style={{ position: "relative", overflow: "hidden", display: "flex", background: BG, backgroundImage: `radial-gradient(${BORDER} 1px, transparent 1px)`, backgroundSize: "24px 24px" }}>
               {!activeProject ? (
                 <div style={{ margin: "auto", textAlign: "center", color: MUTED, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
@@ -387,7 +399,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
               )}
             </div>
 
-            {/* Painel direito: Propriedades + Timeline */}
             <div style={{ background: SURFACE, borderLeft: `1px solid ${BORDER}`, overflow: "hidden", display: "flex", flexDirection: "column" }}>
               <div style={{ padding: 16, borderBottom: `1px solid ${BORDER}`, flexShrink: 0 }}>
                 <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>
@@ -416,6 +427,23 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
                     <span style={{ color: MUTED, fontSize: 12 }}>Decisões</span>
                     <Badge>{nodes.filter(n => n.type === 'gateway').length}</Badge>
                   </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <Btn 
+                      onClick={handleGenerateTasksFromFlow} 
+                      disabled={!generated || generatingTasks}
+                      style={{ 
+                        width: "100%", justifyContent: "center", 
+                        background: '#f8fafc', color: '#0f172a', 
+                        border: `1px solid ${BORDER}`,
+                        fontWeight: 700
+                      }}
+                    >
+                      {generatingTasks ? <Loader size={14} style={{ animation: "spin 1s linear infinite" }} /> : <ListTodo size={15} color={GOLD_DIM} />}
+                      {generatingTasks ? "Delegando..." : "Delegar Tarefas (Diário)"}
+                    </Btn>
+                  </div>
+
                 </div>
               </div>
 
@@ -426,7 +454,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
           </div>
         )}
 
-        {/* ── VIEW CONTA ────────────────────────────────────────────────────── */}
         {view === "conta" && (
           <div style={{ padding: 40, overflow: "auto", background: BG, flex: 1 }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, marginBottom: 24 }}>
@@ -443,7 +470,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
           </div>
         )}
 
-        {/* ── MODAL FULLSCREEN PROMPT ──────────────────────────────────────── */}
         {promptFullscreen && (
           <div style={{ position: "fixed", inset: 0, background: "#00000077", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: SURFACE, borderRadius: 16, border: `1px solid ${BORDER}`, width: "80vw", maxWidth: 900, height: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 80px #00000033" }}>
@@ -489,7 +515,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
           </div>
         )}
 
-        {/* ── MODAL DE ESCOLHA DE UPLOAD ───────────────────────────────────── */}
         {uploadChoiceModal && (
           <div style={{ position: 'fixed', inset: 0, background: '#00000066', backdropFilter: 'blur(4px)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onClick={() => setUploadChoiceModal(null)}>
@@ -548,7 +573,6 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
           </div>
         )}
 
-        {/* ── MODAIS DE APRESENTAÇÃO ────────────────────────────────────────── */}
         {presentationModal && (
           <PresentationModal
             onClose={() => setPresentationModal(false)}
