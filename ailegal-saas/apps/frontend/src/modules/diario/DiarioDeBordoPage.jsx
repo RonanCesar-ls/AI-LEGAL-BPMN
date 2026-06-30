@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { useDateNavigation } from './hooks/useDateNavigation';
+import { useTasks } from './hooks/useTasks';
 import { DateHierarchyNav } from './components/DateHierarchyNav';
 import { CollaboratorSelector } from './components/CollaboratorSelector';
+import { TaskList } from './components/TaskList';
 
 const BG       = '#f4f5f7';
 const SURFACE  = '#ffffff';
@@ -15,8 +17,15 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
   const nav = useDateNavigation();
   const [selectedUserId, setSelectedUserId] = useState(user.id);
 
+  const { tasks, loading, addTask, updateStatus, removeTask } = useTasks(
+    selectedUserId,
+    nav.selectedDateISO
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: BG, fontFamily: "'DM Sans', sans-serif" }}>
+
+      <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
 
       <div style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}`, padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
         <button onClick={onVoltar} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: MUTED, fontSize: 13, fontWeight: 600 }}>
@@ -41,10 +50,18 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
       </div>
 
       <div style={{ flex: 1, padding: '0 24px 24px', overflow: 'auto' }}>
-        <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 40, textAlign: 'center', color: MUTED }}>
-          <p style={{ fontSize: 14 }}>
-            Microtarefas de <strong>{nav.selectedDateISO}</strong> aparecerão aqui na próxima etapa.
+        <div style={{ maxWidth: 720 }}>
+          <p style={{ fontSize: 12, color: MUTED, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
+            Microtarefas de {nav.selectedDateISO}
           </p>
+
+          <TaskList
+            tasks={tasks}
+            loading={loading}
+            onAdd={addTask}
+            onStatusChange={updateStatus}
+            onRemove={removeTask}
+          />
         </div>
       </div>
     </div>
