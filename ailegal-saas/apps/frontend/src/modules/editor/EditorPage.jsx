@@ -9,7 +9,7 @@ import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
 import { WalkthroughPresentation } from './components/WalkthroughPresentation';
 import { tasksApi } from '../../shared/services/tasksApi'; 
-
+import { getLocalISODate } from '../../shared/utils/date';
 import { PresentationModal } from './components/PresentationModal';
 import { FullscreenPresentation } from './components/FullscreenPresentation';
 
@@ -97,7 +97,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
     setGeneratingTasks(true);
     
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLocalISODate();
       
       const result = await tasksApi.generateFromProject(activeProjectId, today);
       

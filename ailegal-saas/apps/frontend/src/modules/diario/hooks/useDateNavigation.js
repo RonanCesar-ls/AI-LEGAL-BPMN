@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { getLocalISODate } from '../../../shared/utils/date';
 
 const WEEKDAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 const MONTH_LABELS = [
@@ -6,23 +7,15 @@ const MONTH_LABELS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
-function toISODate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 function isSameDay(a, b) {
   return a.getFullYear() === b.getFullYear()
     && a.getMonth() === b.getMonth()
     && a.getDate() === b.getDate();
 }
 
-// Segunda-feira como início da semana (padrão de trabalho)
 function startOfWeek(date) {
   const d = new Date(date);
-  const day = d.getDay(); // 0 = domingo
+  const day = d.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
@@ -43,7 +36,6 @@ export function useDateNavigation() {
 
   const [selectedDate, setSelectedDate] = useState(() => new Date());
 
-  // Todas as semanas que tocam o mês atual
   const weeks = useMemo(() => {
     const year  = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -65,7 +57,6 @@ export function useDateNavigation() {
     return result;
   }, [currentMonth]);
 
-  // Semana que contém a data selecionada
   const currentWeek = useMemo(() => {
     return weeks.find(w => w.days.some(d => isSameDay(d, selectedDate))) ?? weeks[0];
   }, [weeks, selectedDate]);
@@ -86,7 +77,7 @@ export function useDateNavigation() {
   return {
     currentMonth, monthLabel,
     weeks, currentWeek,
-    selectedDate, selectedDateISO: toISODate(selectedDate),
+    selectedDate, selectedDateISO: getLocalISODate(selectedDate),
     goToPrevMonth, goToNextMonth,
     selectWeek, selectDay,
     isSameDay,
