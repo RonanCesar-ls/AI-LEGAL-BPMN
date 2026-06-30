@@ -11,7 +11,7 @@ export function useTasks(userId, selectedDateISO) {
     setLoading(true);
     setError(null);
     try {
-      const data = await tasksApi.list(selectedDateISO, selectedDateISO);
+      const data = await tasksApi.list(selectedDateISO, selectedDateISO, userId);
       setTasks(data.filter(t => t.userId === userId));
     } catch (err) {
       setError(err.message);

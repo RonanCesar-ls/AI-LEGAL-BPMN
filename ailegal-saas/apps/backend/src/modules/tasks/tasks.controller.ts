@@ -10,12 +10,17 @@ export const tasksController = {
       const user = (req as any).user;
       if (!user?.userId) return res.status(401).json({ error: 'Não autorizado.' });
 
-      const { dateFrom, dateTo } = req.query;
-      
+      const { from, to, userId } = req.query as { from?: string; to?: string; userId?: string };
+
+      const targetUserId = userId || user.userId; // permite ver tarefas de outro colaborador
+
+      const today = new Date();
+      const todayLocal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
       const tasks = await taskRepository.findByUserAndDateRange(
-        user.userId,
-        (dateFrom as string) || new Date().toISOString().split('T')[0],
-        (dateTo as string) || new Date().toISOString().split('T')[0]
+        targetUserId,
+        from || todayLocal,
+        to || todayLocal
       );
 
       return res.json(tasks);

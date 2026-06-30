@@ -3,8 +3,12 @@ import { authApi } from './authApi';
 const API = import.meta.env.VITE_API_URL;
 
 export const tasksApi = {
-  async list(from, to) {
-    const res = await fetch(`${API}/api/tasks?from=${from}&to=${to}`, {
+  
+  async list(from, to, userId) {
+    const params = new URLSearchParams({ from, to });
+    if (userId) params.set('userId', userId);
+
+    const res = await fetch(`${API}/api/tasks?${params.toString()}`, {
       headers: authApi.headers(),
     });
     if (!res.ok) throw new Error('Falha ao carregar tarefas.');
@@ -59,13 +63,14 @@ export const tasksApi = {
     if (!res.ok) throw new Error('Falha ao realocar tarefas.');
     return res.json();
   },
+
   async generateFromProject(projectId, taskDate) {
-  const res = await fetch(`${API}/api/tasks/generate-from-project`, {
-    method:  'POST',
-    headers: authApi.headers(),
-    body:    JSON.stringify({ projectId, taskDate }),
-  });
-  if (!res.ok) throw new Error('Falha ao gerar tarefas.');
-  return res.json();
-},
+    const res = await fetch(`${API}/api/tasks/generate-from-project`, {
+      method:  'POST',
+      headers: authApi.headers(),
+      body:    JSON.stringify({ projectId, taskDate }),
+    });
+    if (!res.ok) throw new Error('Falha ao gerar tarefas.');
+    return res.json();
+  },
 };
