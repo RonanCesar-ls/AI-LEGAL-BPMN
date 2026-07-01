@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { tasksApi } from '../../../shared/services/tasksApi';
+import { normalizeTaskForUI } from './normalizeTaskForUI';
 
 export function useTasks(userId, selectedDateISO) {
   const [tasks, setTasks]     = useState([]);
@@ -12,7 +13,8 @@ export function useTasks(userId, selectedDateISO) {
     setError(null);
     try {
       const data = await tasksApi.list(selectedDateISO, selectedDateISO, userId);
-      setTasks(data.filter(t => t.userId === userId));
+      const normalized = (Array.isArray(data) ? data : []).map(normalizeTaskForUI);
+      setTasks(normalized.filter(t => (t.userId ?? t.assignedTo ?? userId) === userId));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -31,7 +33,7 @@ export function useTasks(userId, selectedDateISO) {
         status: 'todo',
         assignedTo: userId,
       });
-      setTasks(prev => [...prev, created]);
+      setTasks(prev => [...prev, normalizeTaskForUI(created)]);
     } catch (err) {
       setError(err.message);
     }
