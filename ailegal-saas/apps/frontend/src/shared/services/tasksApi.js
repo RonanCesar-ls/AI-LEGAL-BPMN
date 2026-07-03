@@ -73,4 +73,14 @@ export const tasksApi = {
     if (!res.ok) throw new Error('Falha ao gerar tarefas.');
     return res.json();
   },
+
+  async getInsight(userId, taskDate) {
+    const res = await fetch(`${API}/api/tasks/insight`, {
+      method:  'POST',
+      headers: authApi.headers(),
+      body:    JSON.stringify({ userId, taskDate }),
+    });
+    if (!res.ok) throw new Error('Falha ao gerar insight.');
+    return res.json();
+  },
 };

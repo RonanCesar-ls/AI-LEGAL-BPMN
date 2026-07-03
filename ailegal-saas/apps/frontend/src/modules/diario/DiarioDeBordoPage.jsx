@@ -5,6 +5,8 @@ import { useTasks } from './hooks/useTasks';
 import { DateHierarchyNav } from './components/DateHierarchyNav';
 import { CollaboratorSelector } from './components/CollaboratorSelector';
 import { TaskList } from './components/TaskList';
+import { InsightPanel } from './components/InsightPanel';
+import { tasksApi } from '../../shared/services/tasksApi';
 
 const BG       = '#f4f5f7';
 const SURFACE  = '#ffffff';
@@ -17,7 +19,7 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
   const nav = useDateNavigation();
   const [selectedUserId, setSelectedUserId] = useState(user.id);
 
-  const { tasks, loading, addTask, updateStatus, removeTask } = useTasks(
+  const { tasks, loading, addTask, updateStatus, removeTask, reload } = useTasks(
     selectedUserId,
     nav.selectedDateISO
   );
@@ -51,7 +53,21 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
 
       <div style={{ flex: 1, padding: '0 24px 24px', overflow: 'auto' }}>
         <div style={{ maxWidth: 720 }}>
-          <p style={{ fontSize: 12, color: MUTED, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
+          
+          <InsightPanel
+            userId={selectedUserId}
+            taskDate={nav.selectedDateISO}
+            onReallocate={async (taskIds) => {
+              const tomorrow = new Date();
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              const tomorrowISO = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+              
+              await tasksApi.reallocate(taskIds, tomorrowISO);
+              reload();
+            }}
+          />
+
+          <p style={{ fontSize: 12, color: MUTED, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, marginTop: 24 }}>
             Microtarefas de {nav.selectedDateISO}
           </p>
 

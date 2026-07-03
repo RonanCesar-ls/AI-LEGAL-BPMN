@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import { taskRepository } from '../../database/task.repository.js';
 import { pool } from '../../database/connection.js';
+import { AIService } from '../ai/ai.service.js';
+
+const aiService = new AIService();
 
 export const tasksController = {
 
-  
   list: async (req: Request, res: Response) => {
     try {
       const user = (req as any).user;
@@ -12,7 +14,7 @@ export const tasksController = {
 
       const { from, to, userId } = req.query as { from?: string; to?: string; userId?: string };
 
-      const targetUserId = userId || user.userId; // permite ver tarefas de outro colaborador
+      const targetUserId = userId || user.userId;
 
       const today = new Date();
       const todayLocal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -181,4 +183,71 @@ export const tasksController = {
     }
   },
 
+  getInsight: async (req: Request, res: Response) => {
+    try {
+      const { userId, taskDate } = req.body;
+      const loggedUserId = (req as any).user.userId;
+      const targetUserId = userId ?? loggedUserId;
+
+      const todayTasks = await taskRepository.findByUserAndDateRange(
+        targetUserId, taskDate, taskDate
+      );
+
+      const avgPerDay = await taskRepository.getCompletionAverage(targetUserId, 30);
+
+      const totalToday    = todayTasks.length;
+      const doneToday     = todayTasks.filter((t: any) => t.status === 'done').length;
+      const blockedToday  = todayTasks.filter((t: any) => t.status === 'blocked').length;
+      const pendingToday  = todayTasks.filter((t: any) => t.status === 'todo' || t.status === 'in_progress').length;
+
+      const userResult = await pool.query(
+        'SELECT name FROM users WHERE id = $1', [targetUserId]
+      );
+      const collaboratorName = userResult.rows[0]?.name ?? 'o colaborador';
+
+      const context = `Você é um assistente de gestão de processos jurídicos. Analise os dados abaixo e gere um insight curto e direto (máximo 3 frases) sobre o risco de atraso do colaborador hoje. Escreva em português, tom profissional mas acessível. Termine sempre com uma recomendação de ação concreta.
+      
+      DADOS DO DIA (${taskDate}):
+      - Colaborador: ${collaboratorName}
+      - Total de tarefas hoje: ${totalToday}
+      - Concluídas: ${doneToday}
+      - Pendentes: ${pendingToday}
+      - Impedidas: ${blockedToday}
+      - Média histórica de tarefas concluídas por dia: ${avgPerDay.toFixed(1)}
+      
+      REGRAS:
+      - Se pendingToday > avgPerDay * 1.5, classifique como RISCO ALTO
+      - Se pendingToday > avgPerDay, classifique como RISCO MÉDIO  
+      - Caso contrário, classifique como DENTRO DO ESPERADO
+      - Se houver tarefas bloqueadas, mencione isso como ponto crítico
+      - Sugira realocar as tarefas excedentes para o próximo dia útil se o risco for alto`.trim();
+
+      const insightText = await aiService.generateRawText(context);
+
+      const riskLevel = pendingToday > avgPerDay * 1.5 ? 'high'
+        : pendingToday > avgPerDay ? 'medium'
+        : 'low';
+
+      const tasksToReallocate = riskLevel === 'high'
+        ? todayTasks
+            .filter((t: any) => t.status === 'todo')
+            .slice(Math.floor(avgPerDay))
+            .map((t: any) => t.id)
+        : [];
+
+      return res.json({
+        insight:            insightText.trim(),
+        riskLevel,
+        stats: {
+          totalToday, doneToday, pendingToday, blockedToday,
+          avgPerDay: parseFloat(avgPerDay.toFixed(1)),
+        },
+        tasksToReallocate,
+        collaboratorName,
+      });
+    } catch (err) {
+      console.error('[tasks.getInsight]', err);
+      return res.status(500).json({ error: 'Falha ao gerar insight.' });
+    }
+  },
 };
