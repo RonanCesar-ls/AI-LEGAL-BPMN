@@ -77,4 +77,15 @@ export const authApi = {
 
     return res.json();
   },
+  async verifyCollaborator(targetUserId, password) {
+    const res = await fetch(`${API}/api/auth/verify-collaborator`, {
+      method:  'POST',
+      headers: this.headers(),
+      body:    JSON.stringify({ targetUserId, password }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Falha ao verificar colaborador.');
+    return data;
+  },
 };

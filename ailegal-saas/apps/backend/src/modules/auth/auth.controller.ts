@@ -117,7 +117,6 @@ export const authController = {
     try {
       const user = (req as any).user;
 
-      // TRAVA DE SEGURANÇA ADICIONADA AQUI 👇
       if (!user?.userId) {
         return res.status(401).json({ error: 'Não autorizado.' });
       }
@@ -135,6 +134,53 @@ export const authController = {
     } catch (err) {
       console.error('[auth.me]', err);
       return res.status(500).json({ error: 'Falha ao buscar usuário.' });
+    }
+  },
+  verifyCollaborator: async (req: Request, res: Response) => {
+    try {
+      const requestingUser = (req as any).user;
+
+      const { targetUserId, password } = req.body;
+
+      if (!targetUserId || !password) {
+        return res.status(400).json({ error: 'targetUserId e password são obrigatórios.' });
+      }
+
+      if (targetUserId === requestingUser.userId) {
+        return res.json({ ok: true, isSelf: true });
+      }
+
+      const result = await pool.query(
+        'SELECT id, name, email, password, role FROM users WHERE id = $1',
+        [targetUserId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Colaborador não encontrado.' });
+      }
+
+      const collaborator = result.rows[0];
+
+      const passwordMatch = await bcrypt.compare(password, collaborator.password);
+
+      if (!passwordMatch) {
+        return res.status(401).json({ error: 'Senha incorreta.' });
+      }
+
+      return res.json({
+        ok:   true,
+        isSelf: false,
+        collaborator: {
+          id:    collaborator.id,
+          name:  collaborator.name,
+          email: collaborator.email,
+          role:  collaborator.role,
+        },
+      });
+
+    } catch (err) {
+      console.error('[auth.verifyCollaborator]', err);
+      return res.status(500).json({ error: 'Falha ao verificar colaborador.' });
     }
   },
 };
