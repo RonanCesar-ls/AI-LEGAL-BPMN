@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, User, Shield } from 'lucide-react';
+import { ChevronDown, User, Shield, Lock} from 'lucide-react';
 import { usersApi } from '../../../shared/services/usersApi';
 import { CollaboratorAuthModal } from './CollaboratorAuthModal';
-import { ChevronDown, User, Shield, Lock } from 'lucide-react';
 
 const BORDER = '#e2e8f0';
 const TEXT   = '#1e293b';
