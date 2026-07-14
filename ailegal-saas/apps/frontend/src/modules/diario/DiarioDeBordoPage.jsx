@@ -17,11 +17,14 @@ const GOLD_DIM = '#b88a12';
 
 export function DiarioDeBordoPage({ user, onVoltar }) {
   const nav = useDateNavigation();
-  const [selectedUserId, setSelectedUserId] = useState(user.id);
+  const [selectedUserId, setSelectedUserId]             = useState(user.id);
+  const [selectedCollaborator, setSelectedCollaborator] = useState(null);
 
   const { tasks, loading, addTask, updateStatus, removeTask, reload } = useTasks(
     selectedUserId,
-    nav.selectedDateISO
+    nav.selectedDateISO,
+    user,                // ← quem está logado
+    selectedCollaborator // ← em nome de quem está atuando
   );
 
   return (
@@ -47,7 +50,10 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
         <CollaboratorSelector
           currentUser={user}
           selectedUserId={selectedUserId}
-          onSelect={setSelectedUserId}
+          onSelect={(userId, collaborator) => {
+            setSelectedUserId(userId);
+            setSelectedCollaborator(collaborator ?? null);
+          }}
         />
       </div>
 

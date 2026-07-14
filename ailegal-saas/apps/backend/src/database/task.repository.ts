@@ -77,7 +77,7 @@ export const taskRepository = {
 
     if (data.title       !== undefined) { fields.push(`title = $${idx++}`);       values.push(data.title); }
     if (data.description !== undefined) { fields.push(`description = $${idx++}`); values.push(data.description); }
-    if (data.taskDate     !== undefined) { fields.push(`task_date = $${idx++}`);   values.push(data.taskDate); }
+    if (data.taskDate    !== undefined) { fields.push(`task_date = $${idx++}`);   values.push(data.taskDate); }
     if (data.status      !== undefined) { fields.push(`status = $${idx++}`);      values.push(data.status); }
 
     if (fields.length === 0) return null;
@@ -136,5 +136,79 @@ export const taskRepository = {
       SELECT id, name FROM users WHERE LOWER(name) = LOWER($1) LIMIT 1
     `, [name]);
     return result.rows[0] ?? null;
+  },
+};
+
+
+export interface TaskAuditRow {
+  id:             string;
+  task_id:        string | null;
+  project_id:     string | null;
+  actor_id:       string;
+  actor_name:     string;
+  acting_as_id:   string | null;
+  acting_as_name: string | null;
+  action:         string;
+  from_status:    string | null;
+  to_status:      string | null;
+  task_title:     string | null;
+  note:           string | null;
+  created_at:     string;
+}
+
+export const taskAuditRepository = {
+
+  async create(data: {
+    taskId?:        string;
+    projectId?:     string;
+    actorId:        string;
+    actorName:      string;
+    actingAsId?:    string;
+    actingAsName?:  string;
+    action:         string;
+    fromStatus?:    string;
+    toStatus?:      string;
+    taskTitle?:     string;
+    note?:          string;
+  }): Promise<TaskAuditRow> {
+    const result = await pool.query<TaskAuditRow>(`
+      INSERT INTO task_audit_log
+        (task_id, project_id, actor_id, actor_name, acting_as_id, acting_as_name,
+         action, from_status, to_status, task_title, note)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *
+    `, [
+      data.taskId         ?? null,
+      data.projectId      ?? null,
+      data.actorId,
+      data.actorName,
+      data.actingAsId     ?? null,
+      data.actingAsName   ?? null,
+      data.action,
+      data.fromStatus     ?? null,
+      data.toStatus       ?? null,
+      data.taskTitle      ?? null,
+      data.note           ?? null,
+    ]);
+    return result.rows[0];
+  },
+
+  async findByUser(userId: string, limit = 50): Promise<TaskAuditRow[]> {
+    const result = await pool.query<TaskAuditRow>(`
+      SELECT * FROM task_audit_log
+      WHERE actor_id = $1 OR acting_as_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `, [userId, limit]);
+    return result.rows;
+  },
+
+  async findByTask(taskId: string): Promise<TaskAuditRow[]> {
+    const result = await pool.query<TaskAuditRow>(`
+      SELECT * FROM task_audit_log
+      WHERE task_id = $1
+      ORDER BY created_at DESC
+    `, [taskId]);
+    return result.rows;
   },
 };

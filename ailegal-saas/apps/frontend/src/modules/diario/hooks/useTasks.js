@@ -2,10 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { tasksApi } from '../../../shared/services/tasksApi';
 import { normalizeTaskForUI } from './normalizeTaskForUI';
 
-export function useTasks(userId, selectedDateISO) {
+export function useTasks(userId, selectedDateISO, currentUser) {
   const [tasks, setTasks]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
+
+  const actingAs = userId !== currentUser?.id
+    ? { actingAsId: userId, actingAsName: 'Colaborador Selecionado' } 
+    : null;
 
   const reload = useCallback(async () => {
     if (!userId || !selectedDateISO) return;
@@ -42,22 +46,22 @@ export function useTasks(userId, selectedDateISO) {
   const updateStatus = useCallback(async (taskId, status) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
     try {
-      await tasksApi.updateStatus(taskId, status);
+      await tasksApi.updateStatus(taskId, status, actingAs);
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload]);
+  }, [reload, actingAs]);
 
   const removeTask = useCallback(async (taskId) => {
     setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
-      await tasksApi.remove(taskId);
+      await tasksApi.remove(taskId, actingAs);
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload]);
+  }, [reload, actingAs]);
 
   return { tasks, loading, error, addTask, updateStatus, removeTask, reload };
 }

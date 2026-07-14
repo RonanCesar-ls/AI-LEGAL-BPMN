@@ -1,9 +1,5 @@
 import { pool } from './connection.js';
 
-/**
- * Cria todas as tabelas se não existirem.
- * Executado automaticamente na inicialização do servidor.
- */
 export async function runMigrations(): Promise<void> {
   const client = await pool.connect();
 
@@ -138,6 +134,46 @@ export async function runMigrations(): Promise<void> {
           FOR EACH ROW EXECUTE FUNCTION update_updated_at();
       EXCEPTION WHEN duplicate_object THEN NULL;
       END $$;
+    `);
+
+    // Adiciona coluna acting_as em timeline_events (quem estava atuando como quem)
+    await client.query(`
+      ALTER TABLE timeline_events
+      ADD COLUMN IF NOT EXISTS acting_as VARCHAR(255);
+    `);
+
+    // Tabela de auditoria de tarefas do diário de bordo
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS task_audit_log (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        task_id       UUID REFERENCES tasks(id) ON DELETE CASCADE,
+        project_id    UUID REFERENCES projects(id) ON DELETE SET NULL,
+        actor_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        actor_name    VARCHAR(255) NOT NULL,
+        acting_as_id  UUID REFERENCES users(id) ON DELETE SET NULL,
+        acting_as_name VARCHAR(255),
+        action        VARCHAR(50) NOT NULL,
+        from_status   VARCHAR(50),
+        to_status     VARCHAR(50),
+        task_title    VARCHAR(255),
+        note          TEXT,
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_task_audit_actor
+      ON task_audit_log(actor_id, created_at DESC);
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_task_audit_acting_as
+      ON task_audit_log(acting_as_id, created_at DESC);
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_task_audit_task_id
+      ON task_audit_log(task_id);
     `);
 
     await client.query('COMMIT');

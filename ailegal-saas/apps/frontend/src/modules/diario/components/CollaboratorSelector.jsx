@@ -37,7 +37,7 @@ export function CollaboratorSelector({ currentUser, selectedUserId, onSelect }) 
 
   const handleAuthConfirm = (user) => {
     setPendingUser(null);
-    onSelect(user.id);
+    onSelect(user.id, user);
   };
 
   return (

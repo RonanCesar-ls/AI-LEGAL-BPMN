@@ -25,13 +25,30 @@ export const tasksApi = {
     return res.json();
   },
 
-  async updateStatus(id, status) {
+  async updateStatus(id, status, actingAs = null) {
     const res = await fetch(`${API}/api/tasks/${id}`, {
       method:  'PATCH',
       headers: authApi.headers(),
-      body:    JSON.stringify({ status }),
+      body:    JSON.stringify({
+        status,
+        actingAsId:   actingAs?.id   ?? null,
+        actingAsName: actingAs?.name ?? null,
+      }),
     });
     if (!res.ok) throw new Error('Falha ao atualizar status.');
+    return res.json();
+  },
+
+  async remove(id, actingAs = null) {
+    const params = new URLSearchParams();
+    if (actingAs?.id)   params.set('actingAsId',   actingAs.id);
+    if (actingAs?.name) params.set('actingAsName', actingAs.name);
+
+    const res = await fetch(`${API}/api/tasks/${id}?${params}`, {
+      method:  'DELETE',
+      headers: authApi.headers(),
+    });
+    if (!res.ok) throw new Error('Falha ao remover tarefa.');
     return res.json();
   },
 
