@@ -7,6 +7,7 @@ import { CollaboratorSelector } from './components/CollaboratorSelector';
 import { TaskList } from './components/TaskList';
 import { InsightPanel } from './components/InsightPanel';
 import { tasksApi } from '../../shared/services/tasksApi';
+import { AuditLog } from './components/AuditLog';
 
 const BG       = '#f4f5f7';
 const SURFACE  = '#ffffff';
@@ -23,8 +24,8 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
   const { tasks, loading, addTask, updateStatus, removeTask, reload } = useTasks(
     selectedUserId,
     nav.selectedDateISO,
-    user,                // ← quem está logado
-    selectedCollaborator // ← em nome de quem está atuando
+    user,
+    selectedCollaborator
   );
 
   return (
@@ -84,6 +85,11 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
             onStatusChange={updateStatus}
             onRemove={removeTask}
           />
+
+          <div style={{ marginTop: 24 }}>
+            <AuditLog userId={selectedUserId} />
+          </div>
+
         </div>
       </div>
     </div>

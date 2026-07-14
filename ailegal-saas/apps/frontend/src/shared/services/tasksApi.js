@@ -100,4 +100,12 @@ export const tasksApi = {
     if (!res.ok) throw new Error('Falha ao gerar insight.');
     return res.json();
   },
+
+  async getAudit(userId) {
+    const res = await fetch(`${API}/api/tasks/audit/${userId}`, {
+      headers: authApi.headers(),
+    });
+    if (!res.ok) throw new Error('Falha ao buscar histórico.');
+    return res.json();
+  },
 };
