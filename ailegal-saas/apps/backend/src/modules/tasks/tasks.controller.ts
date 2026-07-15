@@ -305,9 +305,9 @@ export const tasksController = {
         taskTitle:    l.task_title,
         note:         l.note,
         createdAt:    l.created_at,
-        description:  l.acting_as_name
-          ? `${l.actor_name} (como ${l.acting_as_name})`
-          : l.actor_name,
+        // No Diário, o colaborador selecionado é o responsável visível pela ação.
+        // O actor_id permanece armazenado para rastreabilidade interna.
+        description:  l.acting_as_name ?? l.actor_name,
       })));
     } catch (err) {
       console.error('[tasks.getAudit]', err);
@@ -328,9 +328,9 @@ export const tasksController = {
         actingAsName: l.acting_as_name, action: l.action,
         fromStatus: l.from_status, toStatus: l.to_status,
         taskTitle: l.task_title, note: l.note, createdAt: l.created_at,
-        description: l.acting_as_name
-          ? `${l.actor_name} (como ${l.acting_as_name})`
-          : l.actor_name,
+        // No Diário, o colaborador selecionado é o responsável visível pela ação.
+        // O actor_id permanece armazenado para rastreabilidade interna.
+        description: l.acting_as_name ?? l.actor_name,
       })));
     } catch (err) {
       console.error('[tasks.getTeamAudit]', err);
