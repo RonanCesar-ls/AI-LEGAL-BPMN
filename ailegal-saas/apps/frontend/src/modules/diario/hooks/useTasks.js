@@ -17,8 +17,7 @@ export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAudit
     setError(null);
     try {
       const data = await tasksApi.list(selectedDateISO, selectedDateISO, userId);
-      const normalized = (Array.isArray(data) ? data : []).map(normalizeTaskForUI);
-      setTasks(normalized.filter(t => (t.userId ?? t.assignedTo ?? userId) === userId));
+      setTasks((Array.isArray(data) ? data : []).map(normalizeTaskForUI));
     } catch (err) {
       setError(err.message);
     } finally {

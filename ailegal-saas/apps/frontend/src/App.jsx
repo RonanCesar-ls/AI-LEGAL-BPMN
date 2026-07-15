@@ -10,6 +10,11 @@ export default function App() {
   const [screen, setScreen]   = useState('loading');
   const [user, setUser]       = useState(null);
 
+  const [diarioContext, setDiarioContext] = useState({
+    selectedUserId:       null,
+    selectedCollaborator: null,
+  });
+
   useEffect(() => {
     async function checkSession() {
       const session = authApi.loadSession();
@@ -45,6 +50,7 @@ export default function App() {
   const handleLogout = () => {
     authApi.clearSession();
     setUser(null);
+    setDiarioContext({ selectedUserId: null, selectedCollaborator: null });
     setScreen('landing');
   };
 
@@ -88,6 +94,8 @@ export default function App() {
         <DiarioDeBordoPage
           user={user}
           onVoltar={() => setScreen('app')}
+          diarioContext={diarioContext}
+          onContextChange={setDiarioContext}
         />
       )}
     </>

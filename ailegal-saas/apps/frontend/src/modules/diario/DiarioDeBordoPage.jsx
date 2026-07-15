@@ -16,11 +16,12 @@ const TEXT     = '#1e293b';
 const MUTED    = '#64748b';
 const GOLD_DIM = '#b88a12';
 
-export function DiarioDeBordoPage({ user, onVoltar }) {
+export function DiarioDeBordoPage({ user, onVoltar, diarioContext, onContextChange }) {
   const nav = useDateNavigation();
-  const [selectedUserId, setSelectedUserId]             = useState(user.id);
-  const [selectedCollaborator, setSelectedCollaborator] = useState(null);
-  
+
+  const selectedUserId       = diarioContext?.selectedUserId       ?? user.id;
+  const selectedCollaborator = diarioContext?.selectedCollaborator ?? null;
+
   const [auditRefreshKey, setAuditRefreshKey] = useState(0);
   const triggerAuditRefresh = () => setAuditRefreshKey(k => k + 1);
 
@@ -31,6 +32,13 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
     selectedCollaborator,
     triggerAuditRefresh
   );
+
+  const handleSelectCollaborator = (userId, collaborator) => {
+    onContextChange({
+      selectedUserId:       userId,
+      selectedCollaborator: collaborator ?? null,
+    });
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: BG, fontFamily: "'DM Sans', sans-serif" }}>
@@ -55,10 +63,7 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
         <CollaboratorSelector
           currentUser={user}
           selectedUserId={selectedUserId}
-          onSelect={(userId, collaborator) => {
-            setSelectedUserId(userId);
-            setSelectedCollaborator(collaborator ?? null);
-          }}
+          onSelect={handleSelectCollaborator}
         />
       </div>
 
