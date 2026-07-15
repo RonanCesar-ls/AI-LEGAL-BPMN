@@ -7,19 +7,16 @@ export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAudit
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
-  const actingAsPayload = actingAs
-    ? { actingAsId: actingAs.id, actingAsName: actingAs.name }
-    : null;
-
   const reload = useCallback(async () => {
     if (!userId || !selectedDateISO) return;
     setLoading(true);
     setError(null);
     try {
       const data = await tasksApi.list(selectedDateISO, selectedDateISO, userId);
-      setTasks((Array.isArray(data) ? data : []).map(normalizeTaskForUI));
+      setTasks(Array.isArray(data) ? data.map(normalizeTaskForUI) : []);
     } catch (err) {
       setError(err.message);
+      setTasks([]);
     } finally {
       setLoading(false);
     }
@@ -31,9 +28,9 @@ export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAudit
     if (!title.trim()) return;
     try {
       const created = await tasksApi.create({
-        title: title.trim(),
-        taskDate: selectedDateISO,
-        status: 'todo',
+        title:      title.trim(),
+        taskDate:   selectedDateISO,
+        status:     'todo',
         assignedTo: userId,
       });
       setTasks(prev => [...prev, normalizeTaskForUI(created)]);
@@ -46,24 +43,24 @@ export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAudit
   const updateStatus = useCallback(async (taskId, status) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
     try {
-      await tasksApi.updateStatus(taskId, status, actingAsPayload);
+      await tasksApi.updateStatus(taskId, status, actingAs);
       onAuditRefresh?.();
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload, actingAsPayload, onAuditRefresh]);
+  }, [reload, actingAs, onAuditRefresh]);
 
   const removeTask = useCallback(async (taskId) => {
     setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
-      await tasksApi.remove(taskId, actingAsPayload);
+      await tasksApi.remove(taskId, actingAs);
       onAuditRefresh?.();
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload, actingAsPayload, onAuditRefresh]);
+  }, [reload, actingAs, onAuditRefresh]);
 
   return { tasks, loading, error, addTask, updateStatus, removeTask, reload };
 }

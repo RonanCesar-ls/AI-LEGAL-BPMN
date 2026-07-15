@@ -28,7 +28,7 @@ export function CollaboratorSelector({ currentUser, selectedUserId, onSelect }) 
     setOpen(false);
 
     if (user.id === currentUser.id) {
-      onSelect(user.id);
+      onSelect(currentUser.id, null);
       return;
     }
 

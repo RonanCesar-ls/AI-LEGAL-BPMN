@@ -10,10 +10,7 @@ export default function App() {
   const [screen, setScreen]   = useState('loading');
   const [user, setUser]       = useState(null);
 
-  const [diarioContext, setDiarioContext] = useState({
-    selectedUserId:       null,
-    selectedCollaborator: null,
-  });
+  const [diarioContext, setDiarioContext] = useState(null);
 
   useEffect(() => {
     async function checkSession() {
@@ -27,7 +24,12 @@ export default function App() {
       try {
         const me = await authApi.me();
         if (me) {
-          setUser({ ...session.user, ...me });
+          const userData = { ...session.user, ...me };
+          setUser(userData);
+          setDiarioContext(prev => prev ?? {
+            selectedUserId:       userData.id,
+            selectedCollaborator: null,
+          });
           setScreen('app');
         } else {
           authApi.clearSession();
@@ -44,13 +46,17 @@ export default function App() {
 
   const handleLogin = (userData) => {
     setUser(userData);
+    setDiarioContext({
+      selectedUserId:       userData.id,
+      selectedCollaborator: null,
+    });
     setScreen('app');
   };
 
   const handleLogout = () => {
     authApi.clearSession();
     setUser(null);
-    setDiarioContext({ selectedUserId: null, selectedCollaborator: null });
+    setDiarioContext(null);
     setScreen('landing');
   };
 
