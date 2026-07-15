@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { tasksApi } from '../../../shared/services/tasksApi';
 import { normalizeTaskForUI } from './normalizeTaskForUI';
 
-export function useTasks(userId, selectedDateISO, currentUser) {
+export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAuditRefresh) {
   const [tasks, setTasks]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
-  const actingAs = userId !== currentUser?.id
-    ? { actingAsId: userId, actingAsName: 'Colaborador Selecionado' } 
+  const actingAsPayload = actingAs
+    ? { actingAsId: actingAs.id, actingAsName: actingAs.name }
     : null;
 
   const reload = useCallback(async () => {
@@ -38,30 +38,33 @@ export function useTasks(userId, selectedDateISO, currentUser) {
         assignedTo: userId,
       });
       setTasks(prev => [...prev, normalizeTaskForUI(created)]);
+      onAuditRefresh?.();
     } catch (err) {
       setError(err.message);
     }
-  }, [selectedDateISO, userId]);
+  }, [selectedDateISO, userId, onAuditRefresh]);
 
   const updateStatus = useCallback(async (taskId, status) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
     try {
-      await tasksApi.updateStatus(taskId, status, actingAs);
+      await tasksApi.updateStatus(taskId, status, actingAsPayload);
+      onAuditRefresh?.();
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload, actingAs]);
+  }, [reload, actingAsPayload, onAuditRefresh]);
 
   const removeTask = useCallback(async (taskId) => {
     setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
-      await tasksApi.remove(taskId, actingAs);
+      await tasksApi.remove(taskId, actingAsPayload);
+      onAuditRefresh?.();
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload, actingAs]);
+  }, [reload, actingAsPayload, onAuditRefresh]);
 
   return { tasks, loading, error, addTask, updateStatus, removeTask, reload };
 }

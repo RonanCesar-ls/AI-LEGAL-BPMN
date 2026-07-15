@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { History, Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import { tasksApi } from '../../../shared/services/tasksApi';
 
@@ -77,21 +77,39 @@ function AuditEntry({ entry }) {
   );
 }
 
-export function AuditLog({ userId }) {
-  const [logs, setLogs]       = useState([]);
-  const [loading, setLoading] = useState(true);
+export function AuditLog({ userId, dateFrom, dateTo, refreshKey }) {
+  const [logs, setLogs]         = useState([]);
+  const [loading, setLoading]   = useState(true);
   const [expanded, setExpanded] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError]       = useState(null);
+  const [filterMode, setFilterMode] = useState('day');
+
+  const { from, to } = useMemo(() => {
+    if (!dateFrom) return { from: null, to: null };
+
+    if (filterMode === 'day') {
+      return { from: dateFrom, to: dateTo ?? dateFrom };
+    }
+
+    const date = new Date(dateFrom + 'T12:00:00');
+    const day  = date.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const mon  = new Date(date); mon.setDate(date.getDate() + diff);
+    const sun  = new Date(mon);  sun.setDate(mon.getDate() + 6);
+
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return { from: fmt(mon), to: fmt(sun) };
+  }, [dateFrom, dateTo, filterMode]);
 
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
     setError(null);
-    tasksApi.getAudit(userId)
+    tasksApi.getAudit(userId, from, to)
       .then(setLogs)
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, from, to, refreshKey]);
 
   return (
     <div style={{ background: '#ffffff', border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden' }}>
@@ -119,26 +137,44 @@ export function AuditLog({ userId }) {
       </button>
 
       {expanded && (
-        <div style={{ padding: '16px 16px 8px' }}>
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
-              <Loader size={18} style={{ animation: 'spin 1s linear infinite', color: MUTED }} />
-            </div>
-          ) : error ? (
-            <p style={{ fontSize: 12, color: '#dc2626', textAlign: 'center', padding: 16 }}>
-              {error}
-            </p>
-          ) : logs.length === 0 ? (
-            <p style={{ fontSize: 12, color: MUTED, textAlign: 'center', padding: 24 }}>
-              Nenhuma ação registrada ainda.
-            </p>
-          ) : (
-            <div>
-              {logs.map(entry => (
-                <AuditEntry key={entry.id} entry={entry} />
-              ))}
-            </div>
-          )}
+        <div>
+          <div style={{ display: 'flex', gap: 6, padding: '10px 16px', borderBottom: `1px solid ${BORDER}` }}>
+            {['day', 'week'].map(mode => (
+              <button
+                key={mode}
+                onClick={() => setFilterMode(mode)}
+                style={{
+                  padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                  border: `1px solid ${filterMode === mode ? '#6366f1' : BORDER}`,
+                  background: filterMode === mode ? '#ede9fe' : 'transparent',
+                  color: filterMode === mode ? '#6366f1' : MUTED,
+                }}
+              >
+                {mode === 'day' ? '📅 Este dia' : '📆 Esta semana'}
+              </button>
+            ))}
+            {from && (
+              <span style={{ fontSize: 10, color: MUTED, alignSelf: 'center', marginLeft: 4 }}>
+                {filterMode === 'day' ? from : `${from} → ${to}`}
+              </span>
+            )}
+          </div>
+
+          <div style={{ padding: '16px 16px 8px' }}>
+            {loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
+                <Loader size={18} style={{ animation: 'spin 1s linear infinite', color: MUTED }} />
+              </div>
+            ) : error ? (
+              <p style={{ fontSize: 12, color: '#dc2626', textAlign: 'center', padding: 16 }}>{error}</p>
+            ) : logs.length === 0 ? (
+              <p style={{ fontSize: 12, color: MUTED, textAlign: 'center', padding: 24 }}>
+                Nenhuma ação registrada {filterMode === 'day' ? 'neste dia' : 'nesta semana'}.
+              </p>
+            ) : (
+              logs.map(entry => <AuditEntry key={entry.id} entry={entry} />)
+            )}
+          </div>
         </div>
       )}
     </div>

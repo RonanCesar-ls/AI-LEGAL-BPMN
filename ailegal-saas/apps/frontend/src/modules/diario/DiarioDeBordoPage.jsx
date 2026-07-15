@@ -20,12 +20,16 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
   const nav = useDateNavigation();
   const [selectedUserId, setSelectedUserId]             = useState(user.id);
   const [selectedCollaborator, setSelectedCollaborator] = useState(null);
+  
+  const [auditRefreshKey, setAuditRefreshKey] = useState(0);
+  const triggerAuditRefresh = () => setAuditRefreshKey(k => k + 1);
 
   const { tasks, loading, addTask, updateStatus, removeTask, reload } = useTasks(
     selectedUserId,
     nav.selectedDateISO,
     user,
-    selectedCollaborator
+    selectedCollaborator,
+    triggerAuditRefresh
   );
 
   return (
@@ -71,6 +75,7 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
               
               await tasksApi.reallocate(taskIds, tomorrowISO);
               reload();
+              triggerAuditRefresh();
             }}
           />
 
@@ -87,7 +92,12 @@ export function DiarioDeBordoPage({ user, onVoltar }) {
           />
 
           <div style={{ marginTop: 24 }}>
-            <AuditLog userId={selectedUserId} />
+            <AuditLog 
+              userId={selectedUserId}
+              dateFrom={nav.selectedDateISO}
+              dateTo={nav.selectedDateISO}
+              refreshKey={auditRefreshKey}
+            />
           </div>
 
         </div>

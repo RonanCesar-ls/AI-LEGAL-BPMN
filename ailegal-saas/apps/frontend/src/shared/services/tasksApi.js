@@ -101,8 +101,12 @@ export const tasksApi = {
     return res.json();
   },
 
-  async getAudit(userId) {
-    const res = await fetch(`${API}/api/tasks/audit/${userId}`, {
+  async getAudit(userId, dateFrom, dateTo) {
+    const params = new URLSearchParams();
+    if (dateFrom) params.set('from', dateFrom);
+    if (dateTo)   params.set('to',   dateTo);
+
+    const res = await fetch(`${API}/api/tasks/audit/${userId}?${params}`, {
       headers: authApi.headers(),
     });
     if (!res.ok) throw new Error('Falha ao buscar histórico.');

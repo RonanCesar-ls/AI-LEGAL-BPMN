@@ -67,7 +67,6 @@ export const tasksController = {
       const { id }     = req.params;
       const { title, description, taskDate, status, actingAsId, actingAsName } = req.body;
 
-      // Busca a tarefa antes de alterar pra pegar o status anterior
       const before = await taskRepository.findById(id);
 
       const updated = await taskRepository.update(id, before?.user_id ?? loggedUser.userId, {
@@ -76,7 +75,6 @@ export const tasksController = {
 
       if (!updated) return res.status(404).json({ error: 'Tarefa não encontrada.' });
 
-      // Registra no log de auditoria
       await taskAuditRepository.create({
         taskId:        id,
         actorId:       loggedUser.userId,
@@ -280,25 +278,25 @@ export const tasksController = {
     }
   },
 
-  // GET /api/tasks/audit/:userId
   getAudit: async (req: Request, res: Response) => {
     try {
-      const { userId } = req.params;
-      const logs = await taskAuditRepository.findByUser(userId);
+      const { userId }          = req.params;
+      const { from, to } = req.query as { from?: string; to?: string };
+
+      const logs = await taskAuditRepository.findByUser(userId, from, to);
 
       return res.json(logs.map(l => ({
-        id:            l.id,
-        taskId:        l.task_id,
-        actorName:     l.actor_name,
-        actingAsName:  l.acting_as_name,
-        action:        l.action,
-        fromStatus:    l.from_status,
-        toStatus:      l.to_status,
-        taskTitle:     l.task_title,
-        note:          l.note,
-        createdAt:     l.created_at,
-        // Texto formatado pra exibir direto na UI
-        description:   l.acting_as_name
+        id:           l.id,
+        taskId:       l.task_id,
+        actorName:    l.actor_name,
+        actingAsName: l.acting_as_name,
+        action:       l.action,
+        fromStatus:   l.from_status,
+        toStatus:     l.to_status,
+        taskTitle:    l.task_title,
+        note:         l.note,
+        createdAt:    l.created_at,
+        description:  l.acting_as_name
           ? `${l.actor_name} (como ${l.acting_as_name})`
           : l.actor_name,
       })));

@@ -193,13 +193,23 @@ export const taskAuditRepository = {
     return result.rows[0];
   },
 
-  async findByUser(userId: string, limit = 50): Promise<TaskAuditRow[]> {
+  async findByUser(userId: string, dateFrom?: string, dateTo?: string, limit = 100): Promise<TaskAuditRow[]> {
+    const params: any[] = [userId];
+    let dateFilter = '';
+
+    if (dateFrom && dateTo) {
+      params.push(dateFrom, dateTo);
+      dateFilter = `AND DATE(created_at AT TIME ZONE 'America/Sao_Paulo') BETWEEN $2 AND $3`;
+    }
+
     const result = await pool.query<TaskAuditRow>(`
       SELECT * FROM task_audit_log
-      WHERE actor_id = $1 OR acting_as_id = $1
+      WHERE (actor_id = $1 OR acting_as_id = $1)
+      ${dateFilter}
       ORDER BY created_at DESC
-      LIMIT $2
-    `, [userId, limit]);
+      LIMIT ${limit}
+    `, params);
+
     return result.rows;
   },
 
