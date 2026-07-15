@@ -12,7 +12,7 @@ export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAudit
     setLoading(true);
     setError(null);
     try {
-      const data = await tasksApi.list(selectedDateISO, selectedDateISO, userId);
+      const data = await tasksApi.list(selectedDateISO, selectedDateISO, userId, 'team');
       setTasks(Array.isArray(data) ? data.map(normalizeTaskForUI) : []);
     } catch (err) {
       setError(err.message);
@@ -32,13 +32,14 @@ export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAudit
         taskDate:   selectedDateISO,
         status:     'todo',
         assignedTo: userId,
+        actingAs,
       });
       setTasks(prev => [...prev, normalizeTaskForUI(created)]);
       onAuditRefresh?.();
     } catch (err) {
       setError(err.message);
     }
-  }, [selectedDateISO, userId, onAuditRefresh]);
+  }, [selectedDateISO, userId, actingAs, onAuditRefresh]);
 
   const updateStatus = useCallback(async (taskId, status) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));

@@ -77,7 +77,7 @@ function AuditEntry({ entry }) {
   );
 }
 
-export function AuditLog({ userId, dateFrom, dateTo, refreshKey }) {
+export function AuditLog({ dateFrom, dateTo, refreshKey }) {
   const [logs, setLogs]         = useState([]);
   const [loading, setLoading]   = useState(true);
   const [expanded, setExpanded] = useState(true);
@@ -102,14 +102,14 @@ export function AuditLog({ userId, dateFrom, dateTo, refreshKey }) {
   }, [dateFrom, dateTo, filterMode]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!from || !to) return;
     setLoading(true);
     setError(null);
-    tasksApi.getAudit(userId, from, to)
+    tasksApi.getAudit(from, to)
       .then(setLogs)
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, [userId, from, to, refreshKey]);
+  }, [from, to, refreshKey]);
 
   return (
     <div style={{ background: '#ffffff', border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden' }}>

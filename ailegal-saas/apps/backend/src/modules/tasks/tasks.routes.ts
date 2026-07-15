@@ -9,6 +9,7 @@ tasksRoutes.post('/',            tasksController.create);
 tasksRoutes.patch('/reallocate', tasksController.reallocate);
 tasksRoutes.post('/generate-from-project', tasksController.generateFromProject);
 tasksRoutes.post('/insight', tasksController.getInsight);
+tasksRoutes.get('/audit', tasksController.getTeamAudit);
 tasksRoutes.patch('/:id',        tasksController.update);
 tasksRoutes.delete('/:id',       tasksController.remove);
 tasksRoutes.get('/audit/:userId', tasksController.getAudit);

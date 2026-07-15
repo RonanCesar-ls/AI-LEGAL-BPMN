@@ -98,7 +98,6 @@ export function DiarioDeBordoPage({ user, onVoltar, diarioContext, onContextChan
 
           <div style={{ marginTop: 24 }}>
             <AuditLog 
-              userId={selectedUserId}
               dateFrom={nav.selectedDateISO}
               dateTo={nav.selectedDateISO}
               refreshKey={auditRefreshKey}

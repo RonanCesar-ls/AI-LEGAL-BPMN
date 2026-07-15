@@ -4,9 +4,10 @@ const API = import.meta.env.VITE_API_URL;
 
 export const tasksApi = {
   
-  async list(from, to, userId) {
+  async list(from, to, userId, scope) {
     const params = new URLSearchParams({ from, to });
     if (userId) params.set('userId', userId);
+    if (scope) params.set('scope', scope);
 
     const res = await fetch(`${API}/api/tasks?${params.toString()}`, {
       headers: authApi.headers(),
@@ -15,11 +16,15 @@ export const tasksApi = {
     return res.json();
   },
 
-  async create({ title, description, taskDate, status, assignedTo, projectId, nodeId }) {
+  async create({ title, description, taskDate, status, assignedTo, projectId, nodeId, actingAs }) {
     const res = await fetch(`${API}/api/tasks`, {
       method:  'POST',
       headers: authApi.headers(),
-      body:    JSON.stringify({ title, description, taskDate, status, assignedTo, projectId, nodeId }),
+      body:    JSON.stringify({
+        title, description, taskDate, status, assignedTo, projectId, nodeId,
+        actingAsId: actingAs?.id ?? null,
+        actingAsName: actingAs?.name ?? null,
+      }),
     });
     if (!res.ok) throw new Error('Falha ao criar tarefa.');
     return res.json();
@@ -62,15 +67,6 @@ export const tasksApi = {
     return res.json();
   },
 
-  async remove(id) {
-    const res = await fetch(`${API}/api/tasks/${id}`, {
-      method:  'DELETE',
-      headers: authApi.headers(),
-    });
-    if (!res.ok) throw new Error('Falha ao remover tarefa.');
-    return res.json();
-  },
-
   async reallocate(taskIds, newDate) {
     const res = await fetch(`${API}/api/tasks/reallocate`, {
       method:  'PATCH',
@@ -101,12 +97,12 @@ export const tasksApi = {
     return res.json();
   },
 
-  async getAudit(userId, dateFrom, dateTo) {
+  async getAudit(dateFrom, dateTo) {
     const params = new URLSearchParams();
     if (dateFrom) params.set('from', dateFrom);
     if (dateTo)   params.set('to',   dateTo);
 
-    const res = await fetch(`${API}/api/tasks/audit/${userId}?${params}`, {
+    const res = await fetch(`${API}/api/tasks/audit?${params}`, {
       headers: authApi.headers(),
     });
     if (!res.ok) throw new Error('Falha ao buscar histórico.');

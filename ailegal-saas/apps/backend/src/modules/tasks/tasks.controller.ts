@@ -12,18 +12,16 @@ export const tasksController = {
       const user = (req as any).user;
       if (!user?.userId) return res.status(401).json({ error: 'Não autorizado.' });
 
-      const { from, to, userId } = req.query as { from?: string; to?: string; userId?: string };
+      const { from, to, userId, scope } = req.query as { from?: string; to?: string; userId?: string; scope?: string };
 
       const targetUserId = userId || user.userId;
 
       const today = new Date();
       const todayLocal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-      const tasks = await taskRepository.findByUserAndDateRange(
-        targetUserId,
-        from || todayLocal,
-        to || todayLocal
-      );
+      const tasks = scope === 'team'
+        ? await taskRepository.findByDateRange(from || todayLocal, to || todayLocal)
+        : await taskRepository.findByUserAndDateRange(targetUserId, from || todayLocal, to || todayLocal);
 
       return res.json(tasks);
     } catch (err) {
@@ -37,14 +35,14 @@ export const tasksController = {
       const user = (req as any).user;
       if (!user?.userId) return res.status(401).json({ error: 'Não autorizado.' });
 
-      const { title, description, taskDate, status, projectId, nodeId } = req.body;
+      const { title, description, taskDate, status, projectId, nodeId, assignedTo, actingAsId, actingAsName } = req.body;
 
       if (!title || !taskDate) {
         return res.status(400).json({ error: 'Título e data da tarefa são obrigatórios.' });
       }
 
       const task = await taskRepository.create({
-        userId: user.userId,
+        userId: assignedTo || user.userId,
         createdBy: user.userId,
         title,
         description,
@@ -52,6 +50,17 @@ export const tasksController = {
         status,
         projectId,
         nodeId
+      });
+
+      await taskAuditRepository.create({
+        taskId:        task.id,
+        projectId:     task.project_id ?? undefined,
+        actorId:       user.userId,
+        actorName:     user.name,
+        actingAsId,
+        actingAsName,
+        action:        'create',
+        taskTitle:     task.title,
       });
 
       return res.status(201).json(task);
@@ -303,6 +312,29 @@ export const tasksController = {
     } catch (err) {
       console.error('[tasks.getAudit]', err);
       return res.status(500).json({ error: 'Falha ao buscar histórico.' });
+    }
+  },
+
+  getTeamAudit: async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user?.userId) return res.status(401).json({ error: 'NÃ£o autorizado.' });
+
+      const { from, to } = req.query as { from?: string; to?: string };
+      const logs = await taskAuditRepository.findByDateRange(from, to);
+
+      return res.json(logs.map(l => ({
+        id: l.id, taskId: l.task_id, actorName: l.actor_name,
+        actingAsName: l.acting_as_name, action: l.action,
+        fromStatus: l.from_status, toStatus: l.to_status,
+        taskTitle: l.task_title, note: l.note, createdAt: l.created_at,
+        description: l.acting_as_name
+          ? `${l.actor_name} (como ${l.acting_as_name})`
+          : l.actor_name,
+      })));
+    } catch (err) {
+      console.error('[tasks.getTeamAudit]', err);
+      return res.status(500).json({ error: 'Falha ao buscar histÃ³rico.' });
     }
   },
 };

@@ -30,6 +30,15 @@ export const taskRepository = {
     return result.rows;
   },
 
+  async findByDateRange(dateFrom: string, dateTo: string): Promise<TaskRow[]> {
+    const result = await pool.query<TaskRow>(`
+      SELECT * FROM tasks
+      WHERE task_date BETWEEN $1 AND $2
+      ORDER BY task_date ASC, created_at ASC
+    `, [dateFrom, dateTo]);
+    return result.rows;
+  },
+
   async findById(id: string): Promise<TaskRow | null> {
     const result = await pool.query<TaskRow>(`
       SELECT * FROM tasks WHERE id = $1
@@ -205,6 +214,25 @@ export const taskAuditRepository = {
     const result = await pool.query<TaskAuditRow>(`
       SELECT * FROM task_audit_log
       WHERE (actor_id = $1 OR acting_as_id = $1)
+      ${dateFilter}
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `, params);
+
+    return result.rows;
+  },
+
+  async findByDateRange(dateFrom?: string, dateTo?: string, limit = 100): Promise<TaskAuditRow[]> {
+    const params: string[] = [];
+    let dateFilter = '';
+
+    if (dateFrom && dateTo) {
+      params.push(dateFrom, dateTo);
+      dateFilter = `WHERE DATE(created_at AT TIME ZONE 'America/Sao_Paulo') BETWEEN $1 AND $2`;
+    }
+
+    const result = await pool.query<TaskAuditRow>(`
+      SELECT * FROM task_audit_log
       ${dateFilter}
       ORDER BY created_at DESC
       LIMIT ${limit}
