@@ -5,6 +5,18 @@ import { AIService } from '../ai/ai.service.js';
 
 const aiService = new AIService();
 
+const sseClients = new Set<Response>();
+
+export function notifyDashboardUpdate() {
+  sseClients.forEach(client => {
+    try {
+      client.write(`data: ${JSON.stringify({ type: 'refresh', ts: Date.now() })}\n\n`);
+    } catch {
+      sseClients.delete(client);
+    }
+  });
+}
+
 export const tasksController = {
 
   list: async (req: Request, res: Response) => {
@@ -63,6 +75,8 @@ export const tasksController = {
         taskTitle:     task.title,
       });
 
+      notifyDashboardUpdate();
+
       return res.status(201).json(task);
     } catch (err) {
       console.error('[tasks.create]', err);
@@ -95,6 +109,8 @@ export const tasksController = {
         toStatus:      status,
         taskTitle:     before?.title,
       });
+
+      notifyDashboardUpdate();
 
       return res.json({
         id: updated.id, title: updated.title,
@@ -147,6 +163,8 @@ export const tasksController = {
         action:       'delete',
         taskTitle:    before?.title,
       });
+
+      notifyDashboardUpdate();
 
       return res.json({ ok: true });
     } catch (err) {
@@ -305,8 +323,6 @@ export const tasksController = {
         taskTitle:    l.task_title,
         note:         l.note,
         createdAt:    l.created_at,
-        // No Diário, o colaborador selecionado é o responsável visível pela ação.
-        // O actor_id permanece armazenado para rastreabilidade interna.
         description:  l.acting_as_name ?? l.actor_name,
       })));
     } catch (err) {
@@ -318,7 +334,7 @@ export const tasksController = {
   getTeamAudit: async (req: Request, res: Response) => {
     try {
       const user = (req as any).user;
-      if (!user?.userId) return res.status(401).json({ error: 'NÃ£o autorizado.' });
+      if (!user?.userId) return res.status(401).json({ error: 'Não autorizado.' });
 
       const { from, to } = req.query as { from?: string; to?: string };
       const logs = await taskAuditRepository.findByDateRange(from, to);
@@ -328,13 +344,112 @@ export const tasksController = {
         actingAsName: l.acting_as_name, action: l.action,
         fromStatus: l.from_status, toStatus: l.to_status,
         taskTitle: l.task_title, note: l.note, createdAt: l.created_at,
-        // No Diário, o colaborador selecionado é o responsável visível pela ação.
-        // O actor_id permanece armazenado para rastreabilidade interna.
         description: l.acting_as_name ?? l.actor_name,
       })));
     } catch (err) {
       console.error('[tasks.getTeamAudit]', err);
-      return res.status(500).json({ error: 'Falha ao buscar histÃ³rico.' });
+      return res.status(500).json({ error: 'Falha ao buscar histórico.' });
+    }
+  },
+
+  sseEvents: async (req: Request, res: Response) => {
+    let user = (req as any).user;
+    
+    if (!user?.userId) {
+      const token = req.query.token as string;
+      if (token) {
+        try {
+          const jwt = await import('jsonwebtoken');
+          const decoded = jwt.verify(token, process.env.JWT_SECRET ?? 'ailegal_secret_dev') as any;
+          user = decoded;
+        } catch {
+          return res.status(401).end();
+        }
+      } else {
+        return res.status(401).end();
+      }
+    }
+
+    res.setHeader('Content-Type',  'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection',    'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    sseClients.add(res);
+
+    const heartbeat = setInterval(() => {
+      try {
+        res.write(': heartbeat\n\n');
+      } catch {
+        clearInterval(heartbeat);
+        sseClients.delete(res);
+      }
+    }, 30000);
+
+    req.on('close', () => {
+      clearInterval(heartbeat);
+      sseClients.delete(res);
+    });
+  },
+
+  getMetrics: async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user?.userId) return res.status(401).json({ error: 'Não autorizado.' });
+
+      const { date } = req.query as { date?: string };
+      const today = new Date();
+      const todayLocal = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      const targetDate = date || todayLocal;
+
+      const tasks = await taskRepository.findByDateRange(targetDate, targetDate);
+
+      const byStatus = tasks.reduce((acc: any, t: any) => {
+        acc[t.status] = (acc[t.status] ?? 0) + 1;
+        return acc;
+      }, { todo: 0, in_progress: 0, blocked: 0, done: 0 });
+
+      const byCollaborator: Record<string, any> = {};
+      tasks.forEach((t: any) => {
+        const name = t.user_name ?? t.user_id ?? 'Desconhecido';
+        if (!byCollaborator[name]) {
+          byCollaborator[name] = { name, total: 0, done: 0, blocked: 0 };
+        }
+        byCollaborator[name].total++;
+        if (t.status === 'done')    byCollaborator[name].done++;
+        if (t.status === 'blocked') byCollaborator[name].blocked++;
+      });
+
+      const total       = tasks.length;
+      const done        = byStatus.done ?? 0;
+      const blocked     = byStatus.blocked ?? 0;
+      const completion  = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      const recentAudit = await taskAuditRepository.findByDateRange(targetDate, targetDate, 5);
+
+      return res.json({
+        date:             targetDate,
+        total,
+        byStatus,
+        blocked,
+        completion,
+        byCollaborator: Object.values(byCollaborator),
+        recentActivity: recentAudit.map(l => ({
+          id:          l.id,
+          description: l.acting_as_name
+            ? `${l.actor_name} (como ${l.acting_as_name})`
+            : l.actor_name,
+          action:     l.action,
+          taskTitle:  l.task_title,
+          fromStatus: l.from_status,
+          toStatus:   l.to_status,
+          createdAt:  l.created_at,
+        })),
+      });
+    } catch (err) {
+      console.error('[tasks.getMetrics]', err);
+      return res.status(500).json({ error: 'Falha ao buscar métricas.' });
     }
   },
 };

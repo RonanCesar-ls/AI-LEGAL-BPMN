@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { useDateNavigation } from './hooks/useDateNavigation';
 import { useTasks } from './hooks/useTasks';
+import { useDashboard }  from './hooks/useDashboard';
 import { DateHierarchyNav } from './components/DateHierarchyNav';
 import { CollaboratorSelector } from './components/CollaboratorSelector';
 import { TaskList } from './components/TaskList';
 import { InsightPanel } from './components/InsightPanel';
+import { Dashboard }     from './components/Dashboard';
 import { tasksApi } from '../../shared/services/tasksApi';
 import { AuditLog } from './components/AuditLog';
 
@@ -32,6 +34,8 @@ export function DiarioDeBordoPage({ user, onVoltar, diarioContext, onContextChan
     selectedCollaborator,
     triggerAuditRefresh
   );
+
+  const { metrics, loading: metricsLoading, lastUpdate } = useDashboard(nav.selectedDateISO);
 
   const handleSelectCollaborator = (userId, collaborator) => {
     onContextChange({
@@ -68,39 +72,59 @@ export function DiarioDeBordoPage({ user, onVoltar, diarioContext, onContextChan
       </div>
 
       <div style={{ flex: 1, padding: '0 24px 24px', overflow: 'auto' }}>
-        <div style={{ maxWidth: 720 }}>
-          
-          <InsightPanel
-            userId={selectedUserId}
-            taskDate={nav.selectedDateISO}
-            onReallocate={async (taskIds) => {
-              const tomorrow = new Date();
-              tomorrow.setDate(tomorrow.getDate() + 1);
-              const tomorrowISO = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
-              
-              await tasksApi.reallocate(taskIds, tomorrowISO);
-              reload();
-              triggerAuditRefresh();
-            }}
-          />
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 380px',
+          gap: 20,
+          maxWidth: 1200,
+          alignItems: 'start',
+        }}>
 
-          <p style={{ fontSize: 12, color: MUTED, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, marginTop: 24 }}>
-            Microtarefas de {nav.selectedDateISO}
-          </p>
+          <div>
+            <InsightPanel
+              userId={selectedUserId}
+              taskDate={nav.selectedDateISO}
+              onReallocate={async (taskIds) => {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowISO = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
+                
+                await tasksApi.reallocate(taskIds, tomorrowISO);
+                reload();
+                triggerAuditRefresh();
+              }}
+            />
+            
+            <p style={{ fontSize: 12, color: MUTED, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, marginTop: 24 }}>
+              Microtarefas de {nav.selectedDateISO}
+            </p>
+            
+            <TaskList
+              tasks={tasks}
+              loading={loading}
+              onAdd={addTask}
+              onStatusChange={updateStatus}
+              onRemove={removeTask}
+            />
+            
+            <div style={{ marginTop: 24 }}>
+              <AuditLog 
+                userId={selectedUserId}
+                dateFrom={nav.selectedDateISO}
+                dateTo={nav.selectedDateISO}
+                refreshKey={auditRefreshKey}
+              />
+            </div>
+          </div>
 
-          <TaskList
-            tasks={tasks}
-            loading={loading}
-            onAdd={addTask}
-            onStatusChange={updateStatus}
-            onRemove={removeTask}
-          />
-
-          <div style={{ marginTop: 24 }}>
-            <AuditLog 
-              dateFrom={nav.selectedDateISO}
-              dateTo={nav.selectedDateISO}
-              refreshKey={auditRefreshKey}
+          <div style={{ position: 'sticky', top: 0 }}>
+            <p style={{ fontSize: 12, color: MUTED, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
+              Dashboard do dia
+            </p>
+            <Dashboard
+              metrics={metrics}
+              loading={metricsLoading}
+              lastUpdate={lastUpdate}
             />
           </div>
 
