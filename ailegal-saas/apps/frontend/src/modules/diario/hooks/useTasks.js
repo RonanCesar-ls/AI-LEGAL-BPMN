@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { tasksApi } from '../../../shared/services/tasksApi';
 import { normalizeTaskForUI } from './normalizeTaskForUI';
 
-export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAuditRefresh) {
+export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAuditRefresh, onDashboardRefresh) {
   const [tasks, setTasks]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
@@ -36,32 +36,35 @@ export function useTasks(userId, selectedDateISO, currentUser, actingAs, onAudit
       });
       setTasks(prev => [...prev, normalizeTaskForUI(created)]);
       onAuditRefresh?.();
+      onDashboardRefresh?.();
     } catch (err) {
       setError(err.message);
     }
-  }, [selectedDateISO, userId, actingAs, onAuditRefresh]);
+  }, [selectedDateISO, userId, actingAs, onAuditRefresh, onDashboardRefresh]);
 
   const updateStatus = useCallback(async (taskId, status) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
     try {
       await tasksApi.updateStatus(taskId, status, actingAs);
       onAuditRefresh?.();
+      onDashboardRefresh?.();
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload, actingAs, onAuditRefresh]);
+  }, [reload, actingAs, onAuditRefresh, onDashboardRefresh]);
 
   const removeTask = useCallback(async (taskId) => {
     setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
       await tasksApi.remove(taskId, actingAs);
       onAuditRefresh?.();
+      onDashboardRefresh?.();
     } catch (err) {
       setError(err.message);
       reload();
     }
-  }, [reload, actingAs, onAuditRefresh]);
+  }, [reload, actingAs, onAuditRefresh, onDashboardRefresh]);
 
   return { tasks, loading, error, addTask, updateStatus, removeTask, reload };
 }

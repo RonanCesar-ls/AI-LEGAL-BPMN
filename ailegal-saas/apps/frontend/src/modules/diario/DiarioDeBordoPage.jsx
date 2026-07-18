@@ -27,15 +27,16 @@ export function DiarioDeBordoPage({ user, onVoltar, diarioContext, onContextChan
   const [auditRefreshKey, setAuditRefreshKey] = useState(0);
   const triggerAuditRefresh = () => setAuditRefreshKey(k => k + 1);
 
+  const { metrics, loading: metricsLoading, lastUpdate, refetch: refreshDashboard } = useDashboard(nav.selectedDateISO);
+
   const { tasks, loading, addTask, updateStatus, removeTask, reload } = useTasks(
     selectedUserId,
     nav.selectedDateISO,
     user,
     selectedCollaborator,
-    triggerAuditRefresh
+    triggerAuditRefresh,
+    refreshDashboard
   );
-
-  const { metrics, loading: metricsLoading, lastUpdate } = useDashboard(nav.selectedDateISO);
 
   const handleSelectCollaborator = (userId, collaborator) => {
     onContextChange({
@@ -92,6 +93,7 @@ export function DiarioDeBordoPage({ user, onVoltar, diarioContext, onContextChan
                 await tasksApi.reallocate(taskIds, tomorrowISO);
                 reload();
                 triggerAuditRefresh();
+                refreshDashboard();
               }}
             />
             
