@@ -36,7 +36,7 @@ export function useDashboard(selectedDateISO) {
     const token = authApi.getToken();
     if (!token) return;
 
-    const url = `${API}/api/tasks/events?token=${token}`;
+    const url = `${API}/api/tasks/events?token=${encodeURIComponent(token)}`;
     const es  = new EventSource(url);
     eventSourceRef.current = es;
 
@@ -49,17 +49,15 @@ export function useDashboard(selectedDateISO) {
       } catch {}
     };
 
-    es.onerror = () => {
-      setTimeout(() => {
-        es.close();
-      }, 5000);
-    };
+    // O EventSource já tenta reconectar automaticamente se a conexão cair.
+    // Não fechamos a instância aqui, pois isso impediria as reconexões.
+    es.onerror = () => {};
 
     return () => {
       es.close();
       eventSourceRef.current = null;
     };
-  }, []);
+  }, [fetchMetrics]);
 
   return { metrics, loading, lastUpdate, refetch: fetchMetrics };
 }

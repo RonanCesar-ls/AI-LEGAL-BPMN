@@ -136,6 +136,8 @@ export const tasksController = {
 
       const updatedCount = await taskRepository.reallocateMany(taskIds, user.userId, newDate);
 
+      if (updatedCount > 0) notifyDashboardUpdate();
+
       return res.json({ ok: true, updatedCount });
     } catch (err) {
       console.error('[tasks.reallocate]', err);
@@ -224,6 +226,8 @@ export const tasksController = {
 
         created.push(task);
       }
+
+      if (created.length > 0) notifyDashboardUpdate();
 
       return res.json({
         createdCount: created.length,
