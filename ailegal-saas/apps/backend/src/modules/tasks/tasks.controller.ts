@@ -407,7 +407,7 @@ export const tasksController = {
       const todayLocal = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
       const targetDate = date || todayLocal;
 
-      const tasks = await taskRepository.findByDateRange(targetDate, targetDate);
+      const tasks = await taskRepository.findByDateRangeWithUserNames(targetDate, targetDate);
 
       const byStatus = tasks.reduce((acc: any, t: any) => {
         acc[t.status] = (acc[t.status] ?? 0) + 1;

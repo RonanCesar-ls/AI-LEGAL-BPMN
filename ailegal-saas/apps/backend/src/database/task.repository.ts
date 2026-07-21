@@ -12,6 +12,7 @@ export interface TaskRow {
   node_id:     string | null;
   created_at:  string;
   updated_at:  string;
+  user_name?:  string;
 }
 
 export const taskRepository = {
@@ -35,6 +36,17 @@ export const taskRepository = {
       SELECT * FROM tasks
       WHERE task_date BETWEEN $1 AND $2
       ORDER BY task_date ASC, created_at ASC
+    `, [dateFrom, dateTo]);
+    return result.rows;
+  },
+
+  async findByDateRangeWithUserNames(dateFrom: string, dateTo: string): Promise<TaskRow[]> {
+    const result = await pool.query<TaskRow>(`
+      SELECT tasks.*, users.name AS user_name
+      FROM tasks
+      INNER JOIN users ON users.id = tasks.user_id
+      WHERE tasks.task_date BETWEEN $1 AND $2
+      ORDER BY tasks.task_date ASC, tasks.created_at ASC
     `, [dateFrom, dateTo]);
     return result.rows;
   },
