@@ -160,6 +160,56 @@ export async function runMigrations(): Promise<void> {
         created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
+    // ── USER TIME TRACKING (Monitoramento de produtividade) ──────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_time_tracking (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        domain           VARCHAR(100) NOT NULL,
+        duration_seconds INT NOT NULL DEFAULT 0,
+        tracking_date    DATE NOT NULL DEFAULT CURRENT_DATE,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(user_id, domain, tracking_date)
+      );
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tracking_user_date
+      ON user_time_tracking(user_id, tracking_date DESC);
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_tracking_date
+      ON user_time_tracking(tracking_date DESC);
+    `);
+
+    await client.query(`
+      DO $$ BEGIN
+        CREATE TRIGGER trigger_tracking_updated_at
+          BEFORE UPDATE ON user_time_tracking
+          FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$;
+    `);
+
+    // ── APP SETTINGS (configurações globais) ─────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key        VARCHAR(100) PRIMARY KEY,
+        value      TEXT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    // Toggle de monitoramento começa ativado por padrão
+    await client.query(`
+      INSERT INTO app_settings (key, value)
+      VALUES ('monitoring_enabled', 'true')
+      ON CONFLICT (key) DO NOTHING;
+    `);
+
+     
 
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_task_audit_actor

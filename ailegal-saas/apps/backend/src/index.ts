@@ -11,6 +11,7 @@ import { authMiddleware } from './middleware/auth.middleware.js';
 import { tasksRoutes } from './modules/tasks/tasks.routes.js';
 import { tasksController } from './modules/tasks/tasks.controller.js';
 import { usersRoutes } from './modules/users/users.routes.js';
+import { trackingRoutes } from './modules/tracking/tracking.routes.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); 
 
 app.use('/api/auth', authRoutes);
+app.use('/api/tracking', authMiddleware, trackingRoutes);
 
 
 app.use('/api/projects', authMiddleware, projectsRoutes);
