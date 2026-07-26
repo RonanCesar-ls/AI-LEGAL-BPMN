@@ -4,55 +4,42 @@ import cors from 'cors';
 import { processRoutes }  from './modules/process/process.routes.js';
 import { projectsRoutes }  from './modules/projects/projects.routes.js';
 import { timelineRoutes } from './modules/timeline/timeline.routes.js';
-import { authRoutes }     from './modules/auth/auth.routes.js'; 
+import { authRoutes }     from './modules/auth/auth.routes.js';
 import { testConnection } from './database/connection.js';
 import { runMigrations }  from './database/migrations.js';
 import { authMiddleware } from './middleware/auth.middleware.js';
-import { tasksRoutes } from './modules/tasks/tasks.routes.js';
+import { tasksRoutes }    from './modules/tasks/tasks.routes.js';
 import { tasksController } from './modules/tasks/tasks.controller.js';
-import { usersRoutes } from './modules/users/users.routes.js';
+import { usersRoutes }    from './modules/users/users.routes.js';
 import { trackingRoutes } from './modules/tracking/tracking.routes.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://app.177.104.179.163.nip.io',
-      'http://localhost:5173',
-    ];
-
-    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('chrome-extension://')) {
-      return callback(null, true);
-    }
-
-    return callback(new Error('Not allowed by CORS'));
-  },
+app.use(cors({
+  origin: [
+    'http://app.177.104.179.163.nip.io',
+    'http://localhost:5173',
+    'chrome-extension://flbbhdbclkjiaakniodphgkcebmdednp',
+  ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-};
+}));
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-app.use(express.json({ limit: '10mb' })); 
+app.use(express.json({ limit: '10mb' }));
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth',     authRoutes);
 app.use('/api/tracking', authMiddleware, trackingRoutes);
-
-
 app.use('/api/projects', authMiddleware, projectsRoutes);
 app.use('/api/timeline', authMiddleware, timelineRoutes);
 app.use('/api/process',  authMiddleware, processRoutes);
-// EventSource não permite enviar o header Authorization. Esta rota valida o
-// token recebido na query dentro do próprio controller antes de abrir o stream.
-app.get('/api/tasks/events', tasksController.sseEvents);
-app.use('/api/tasks', authMiddleware, tasksRoutes);
-app.use('/api/users', authMiddleware, usersRoutes);
 
+// EventSource não suporta header Authorization — token vem via query param
+app.get('/api/tasks/events', tasksController.sseEvents);
+app.use('/api/tasks',  authMiddleware, tasksRoutes);
+app.use('/api/users',  authMiddleware, usersRoutes);
 
 async function bootstrap() {
-
   const dbOk = await testConnection();
 
   if (dbOk) {
