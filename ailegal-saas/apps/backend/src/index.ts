@@ -20,6 +20,7 @@ app.use(cors({
   origin: [
     'http://app.177.104.179.163.nip.io',
     'http://localhost:5173',
+    'chrome-extension://flbbhdbclkjiaakniodphgkcebmdednp',
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -38,15 +39,6 @@ app.use('/api/process',  authMiddleware, processRoutes);
 app.get('/api/tasks/events', tasksController.sseEvents);
 app.use('/api/tasks', authMiddleware, tasksRoutes);
 app.use('/api/users', authMiddleware, usersRoutes);
-app.use(cors({
-  origin: [
-    'http://app.177.104.179.163.nip.io',
-    'http://localhost:5173',
-    'chrome-extension://flbbhdbclkjiaakniodphgkcebmdednp', // ← ID da sua extensão
-  ],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
 
 
 async function bootstrap() {
