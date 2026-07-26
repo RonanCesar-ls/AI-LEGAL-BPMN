@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>AILegal Monitor</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">⚖ AILegal Monitor</div>
+      <div class="status-dot" id="statusDot"></div>
+    </div>
+
+    <!-- Login -->
+    <div id="loginSection" class="section hidden">
+      <p class="label">URL do Servidor</p>
+      <input type="text" id="apiUrl" placeholder="http://IP:3101" class="input" />
+      <p class="label">E-mail</p>
+      <input type="email" id="email" placeholder="seu@email.com" class="input" />
+      <p class="label">Senha</p>
+      <input type="password" id="password" placeholder="••••••••" class="input" />
+      <button id="loginBtn" class="btn btn-primary">Entrar</button>
+      <p id="loginError" class="error hidden"></p>
+    </div>
+
+    <!-- Painel logado -->
+    <div id="mainSection" class="section hidden">
+      <div class="user-row">
+        <span id="userName" class="user-name"></span>
+        <button id="logoutBtn" class="btn-link">Sair</button>
+      </div>
+
+      <!-- Toggle de monitoramento -->
+      <div class="toggle-row">
+        <span class="toggle-label">Monitoramento</span>
+        <label class="switch">
+          <input type="checkbox" id="monitoringToggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Aba atual -->
+      <div class="current-tab" id="currentTab">
+        <span class="tab-label">Monitorando:</span>
+        <span id="currentDomain" class="tab-domain">—</span>
+      </div>
+
+      <!-- Acumulado hoje -->
+      <div class="accumulated" id="accumulatedSection">
+        <p class="section-title">Acumulado hoje</p>
+        <div id="accumulatedList"></div>
+      </div>
+
+      <!-- Botão de enviar agora -->
+      <button id="sendNowBtn" class="btn btn-secondary">↑ Enviar agora</button>
+    </div>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

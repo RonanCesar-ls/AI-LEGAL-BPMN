@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "AILegal Monitor",
+  "version": "1.0.0",
+  "description": "Monitoramento de tempo em abas operacionais para o AILegal.",
+
+  "permissions": [
+    "tabs",
+    "storage",
+    "alarms",
+    "activeTab"
+  ],
+
+  "host_permissions": [
+    "*://web.whatsapp.com/*",
+    "*://mail.google.com/*",
+    "*://outlook.office.com/*",
+    "*://outlook.live.com/*",
+    "*://*.instagram.com/*",
+    "*://www.facebook.com/*",
+    "*://twitter.com/*",
+    "*://x.com/*",
+    "*://www.linkedin.com/*",
+    "*://www.youtube.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "128": "icons/icon128.png"
+  }
+}
