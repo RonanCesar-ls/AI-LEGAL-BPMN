@@ -16,15 +16,25 @@ import { trackingRoutes } from './modules/tracking/tracking.routes.js';
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({
-  origin: [
-    'http://app.177.104.179.163.nip.io',
-    'http://localhost:5173',
-    'chrome-extension://flbbhdbclkjiaakniodphgkcebmdednp',
-  ],
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://app.177.104.179.163.nip.io',
+      'http://localhost:5173',
+    ];
+
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('chrome-extension://')) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' })); 
 
 app.use('/api/auth', authRoutes);

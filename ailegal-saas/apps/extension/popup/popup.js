@@ -110,9 +110,19 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
       body:    JSON.stringify({ email, password }),
     });
 
-    const data = await res.json();
+    const text = await res.text();
+    let data;
 
-    if (!res.ok) throw new Error(data.error ?? 'Falha ao fazer login.');
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = null;
+    }
+
+    if (!res.ok) {
+      const message = data?.error || res.statusText || 'Falha ao fazer login.';
+      throw new Error(message);
+    }
 
     await setStorage({
       [TOKEN_KEY]:   data.token,

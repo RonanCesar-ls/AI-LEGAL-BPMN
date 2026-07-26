@@ -11,8 +11,7 @@
     "activeTab"
   ],
 
-  "host_permissions": [
-    "*://web.whatsapp.com/*",
+  "host_permissions": [    "http://api.177.104.179.163.nip.io/*",    "*://web.whatsapp.com/*",
     "*://mail.google.com/*",
     "*://outlook.office.com/*",
     "*://outlook.live.com/*",
