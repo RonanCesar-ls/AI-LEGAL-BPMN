@@ -16,7 +16,7 @@ import { trackingRoutes } from './modules/tracking/tracking.routes.js';
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({
+const corsConfig = {
   origin: [
     'http://app.177.104.179.163.nip.io',
     'http://localhost:5173',
@@ -24,7 +24,10 @@ app.use(cors({
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
+
+app.use(cors(corsConfig));
+app.options('*', cors(corsConfig)); // ← responde ao preflight de qualquer rota
 
 app.use(express.json({ limit: '10mb' }));
 
