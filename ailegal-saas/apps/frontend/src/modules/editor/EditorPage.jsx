@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard, Presentation, ListTodo } from "lucide-react";
+import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard, Presentation, ListTodo, Monitor } from "lucide-react";
 import { useProjects } from "./hooks/useProjects";
 import { useFlowGenerate } from "./hooks/useFlowGenerate";
 import { FlowChartEditor } from "./components/FlowChartEditor";
@@ -13,7 +13,7 @@ import { getLocalISODate } from '../../shared/utils/date';
 import { PresentationModal } from './components/PresentationModal';
 import { FullscreenPresentation } from './components/FullscreenPresentation';
 
-export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
+export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento }) => {
   const [view, setView]                     = useState("editor");
   const [sidebarOpen, setSidebarOpen]       = useState(true);
   const [promptFullscreen, setPromptFullscreen] = useState(false);
@@ -125,9 +125,11 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
   }, [presentationMode]);
 
   const sidebarMenu = [
-    { id: "editor", icon: GitBranch, label: "Editor BPMN" },
-    { id: "novo",   icon: Plus,      label: "Novo Projeto" },
-    { id: "conta",  icon: User,      label: "Minha Conta"  },
+    { id: "editor",        icon: GitBranch,       label: "Editor BPMN" },
+    { id: "novo",          icon: Plus,            label: "Novo Projeto" },
+    { id: "diario",        icon: LayoutDashboard, label: "Diário de Bordo" },
+    { id: "monitoramento", icon: Monitor,         label: "Monitoramento" },
+    { id: "conta",         icon: User,            label: "Minha Conta" },
   ];
 
   return (
@@ -146,24 +148,25 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario }) => {
 
         <div style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
           {sidebarMenu.map(item => (
-            <button key={item.id} onClick={() => setView(item.id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px", borderRadius: 8, border: "none", cursor: "pointer", background: view === item.id ? `${GOLD}15` : "transparent", color: view === item.id ? GOLD_DIM : MUTED, fontWeight: view === item.id ? 700 : 500, whiteSpace: "nowrap" }}>
+            <button 
+              key={item.id} 
+              onClick={() => {
+                if (item.id === 'diario') { onAbrirDiario?.(); return; }
+                if (item.id === 'monitoramento') { onAbrirMonitoramento?.(); return; }
+                setView(item.id);
+              }} 
+              style={{ 
+                display: "flex", alignItems: "center", gap: 12, padding: "12px", 
+                borderRadius: 8, border: "none", cursor: "pointer", 
+                background: view === item.id ? `${GOLD}15` : "transparent", 
+                color: view === item.id ? GOLD_DIM : MUTED, 
+                fontWeight: view === item.id ? 700 : 500, 
+                whiteSpace: "nowrap" 
+              }}
+            >
               <item.icon size={18} /> {sidebarOpen && item.label}
             </button>
           ))}
-
-          <button 
-            onClick={onAbrirDiario} 
-            style={{ 
-              display: "flex", alignItems: "center", gap: 12, padding: "12px", 
-              borderRadius: 8, border: "none", cursor: "pointer", 
-              background: "transparent", color: MUTED, 
-              fontWeight: 500, whiteSpace: "nowrap", transition: "background 0.2s"
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-          >
-            <LayoutDashboard size={18} /> {sidebarOpen && "Diário de Bordo"}
-          </button>
         </div>
 
         {sidebarOpen && (

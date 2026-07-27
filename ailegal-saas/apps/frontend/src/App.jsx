@@ -5,6 +5,7 @@ import { Cadastro }           from './modules/auth/Cadastro';
 import { EditorPage }         from './modules/editor/EditorPage';
 import { DiarioDeBordoPage }  from './modules/diario/DiarioDeBordoPage';
 import { authApi }            from './shared/services/authApi';
+import {MonitoramentoPage} from "./modules/monitoramento/MonitoramentoPage";
 
 export default function App() {
   const [screen, setScreen]   = useState('loading');
@@ -93,6 +94,7 @@ export default function App() {
           user={user}
           onLogout={handleLogout}
           onAbrirDiario={() => setScreen('diario')}
+          onAbrirMonitoramento={() => setScreen('monitoramento')}
         />
       )}
 
@@ -102,6 +104,13 @@ export default function App() {
           onVoltar={() => setScreen('app')}
           diarioContext={diarioContext}
           onContextChange={setDiarioContext}
+        />
+      )}
+
+      {screen === 'monitoramento' && user && (
+        <MonitoramentoPage
+          user={user}
+          onVoltar={() => setScreen('app')}
         />
       )}
     </>
