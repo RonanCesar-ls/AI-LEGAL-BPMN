@@ -5,7 +5,8 @@ import { Cadastro }           from './modules/auth/Cadastro';
 import { EditorPage }         from './modules/editor/EditorPage';
 import { DiarioDeBordoPage }  from './modules/diario/DiarioDeBordoPage';
 import { authApi }            from './shared/services/authApi';
-import {MonitoramentoPage} from "./modules/monitoramento/MonitoramentoPage";
+import { MonitoramentoPage }  from "./modules/monitoramento/MonitoramentoPage";
+import { PainelGestor }       from './modules/gestor/PainelGestor';
 
 export default function App() {
   const [screen, setScreen]   = useState('loading');
@@ -95,6 +96,7 @@ export default function App() {
           onLogout={handleLogout}
           onAbrirDiario={() => setScreen('diario')}
           onAbrirMonitoramento={() => setScreen('monitoramento')}
+          onAbrirGestor={() => setScreen('gestor')}
         />
       )}
 
@@ -104,6 +106,13 @@ export default function App() {
           onVoltar={() => setScreen('app')}
           diarioContext={diarioContext}
           onContextChange={setDiarioContext}
+        />
+      )}
+
+      {screen === 'gestor' && user && (
+        <PainelGestor
+          user={user}
+          onVoltar={() => setScreen('app')}
         />
       )}
 

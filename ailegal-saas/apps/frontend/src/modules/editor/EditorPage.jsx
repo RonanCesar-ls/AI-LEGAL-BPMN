@@ -13,7 +13,7 @@ import { getLocalISODate } from '../../shared/utils/date';
 import { PresentationModal } from './components/PresentationModal';
 import { FullscreenPresentation } from './components/FullscreenPresentation';
 
-export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento }) => {
+export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento, onAbrirGestor }) => {
   const [view, setView]                     = useState("editor");
   const [sidebarOpen, setSidebarOpen]       = useState(true);
   const [promptFullscreen, setPromptFullscreen] = useState(false);
@@ -129,6 +129,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
     { id: "novo",          icon: Plus,            label: "Novo Projeto" },
     { id: "diario",        icon: LayoutDashboard, label: "Diário de Bordo" },
     { id: "monitoramento", icon: Monitor,         label: "Monitoramento" },
+    { id: "gestor",        icon: LayoutDashboard, label: "Painel do Gestor" },
     { id: "conta",         icon: User,            label: "Minha Conta" },
   ];
 
@@ -153,6 +154,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
               onClick={() => {
                 if (item.id === 'diario') { onAbrirDiario?.(); return; }
                 if (item.id === 'monitoramento') { onAbrirMonitoramento?.(); return; }
+                if (item.id === 'gestor') { onAbrirGestor?.(); return; }
                 setView(item.id);
               }} 
               style={{ 
