@@ -219,7 +219,7 @@ const CTip = ({ active, payload, label }) => {
   );
 };
 
-export default function PainelGestor({ user, onVoltar }) {
+export function PainelGestor({ user, onVoltar }) {
   const [period, setPeriod] = useState("semana");
   const d = DATA[period];
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
@@ -365,3 +365,5 @@ export default function PainelGestor({ user, onVoltar }) {
     </div>
   );
 }
+
+export default PainelGestor;
