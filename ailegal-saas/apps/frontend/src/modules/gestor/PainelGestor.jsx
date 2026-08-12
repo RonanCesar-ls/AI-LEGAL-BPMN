@@ -152,27 +152,34 @@ function KpiCard({ label, value, delta, up, color }) {
   );
 }
 
-function Funnel({ items }) {
-  const max = items[0].value;
+function FunnelDonut({ items }) {
+  const total = items.reduce((sum, i) => sum + i.value, 0);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-      {items.map((item) => {
-        const pct = Math.round((item.value / max) * 100);
-        return (
-          <div key={item.label}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: 11, color: M, fontWeight: 500 }}>{item.label}</span>
-              <span style={{ fontSize: 12, color: T, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                {item.value.toLocaleString()}
-              </span>
-            </div>
-            <div style={{ height: 7, background: "#f1f5f9", borderRadius: 4, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${pct}%`, background: item.color, borderRadius: 4 }} />
-            </div>
+    <>
+      <ResponsiveContainer width="100%" height={130}>
+        <PieChart>
+          <Pie data={items} cx="50%" cy="50%" innerRadius={32} outerRadius={58} paddingAngle={2} dataKey="value">
+            {items.map((entry, index) => (
+              <Cell key={index} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(v, n) => [`${v} (${Math.round((v/total)*100)}%)`, n]}
+            contentStyle={{ fontSize: 11, border: `0.5px solid ${BRD}`, borderRadius: 6 }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 6px", marginTop: 4 }}>
+        {items.map((item) => (
+          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: M }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: item.color, flexShrink: 0 }} />
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {item.label} {item.value}
+            </span>
           </div>
-        );
-      })}
-    </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -229,14 +236,12 @@ export function PainelGestor({ user, onVoltar }) {
   return (
     <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", color: T, padding: "2px" }}> 
 
-      {/* ── Voltar ── */}
       <div style={{ marginBottom: 16 }}>
         <button onClick={onVoltar} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 13, fontWeight: 600, padding: 0 }}>
           <ArrowLeft size={14} /> Voltar
         </button>
       </div>
 
-      {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 34, height: 34, background: T, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>⚖</div>
@@ -260,26 +265,22 @@ export function PainelGestor({ user, onVoltar }) {
         </div>
       </div>
 
-      {/* ── KPIs ── */}
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "nowrap" }}>
         {d.kpis.map((k) => <KpiCard key={k.label} {...k} />)}
       </div>
 
-      {/* ── Main 3-col ── */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
 
-        {/* Funnel */}
         <div style={card}>
           <div style={sectionTitle}>Funil de processos</div>
           <div style={sectionSub}>do total ao entregue</div>
-          <Funnel items={d.funnel} />
+          <FunnelDonut items={d.funnel} />
           <div style={{ marginTop: 12, paddingTop: 10, borderTop: `0.5px solid #f1f5f9`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 11, color: M }}>Taxa de conclusão</span>
             <span style={{ fontSize: 13, fontWeight: 500, color: C }}>{convRate}%</span>
           </div>
         </div>
 
-        {/* Team */}
         <div style={card}>
           <div style={sectionTitle}>Desempenho individual</div>
           <div style={sectionSub}>tarefas concluídas / total</div>
@@ -290,7 +291,6 @@ export function PainelGestor({ user, onVoltar }) {
           </div>
         </div>
 
-        {/* Insights */}
         <div style={card}>
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
             <span style={{ fontSize: 10, color: I }}>✦</span>
@@ -301,10 +301,8 @@ export function PainelGestor({ user, onVoltar }) {
         </div>
       </div>
 
-      {/* ── Bottom 2-col ── */}
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)", gap: 10 }}>
 
-        {/* Cross-ref chart */}
         <div style={card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
             <div>
@@ -332,7 +330,6 @@ export function PainelGestor({ user, onVoltar }) {
           </ResponsiveContainer>
         </div>
 
-        {/* Monitoring donut */}
         <div style={card}>
           <div style={sectionTitle}>Monitoramento</div>
           <div style={sectionSub}>distribuição por plataforma</div>
