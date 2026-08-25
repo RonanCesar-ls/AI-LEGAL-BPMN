@@ -29,7 +29,7 @@ export const Landing = ({ onLogin, onCadastro }) => {
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 60px", borderBottom: `1px solid ${BORDER}`, background: SURFACE, position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ background: `${GOLD}22`, borderRadius: 10, padding: 8 }}><Scale size={20} color={GOLD_DIM} /></div>
-          <span style={{ fontWeight: 800, fontSize: 18 }}>Ai<span style={{ color: GOLD_DIM }}>Legal</span></span>
+          <span style={{ fontWeight: 800, fontSize: 18 }}>PBM<span style={{ color: GOLD_DIM }}>app</span></span>
         </div>
         <nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button onClick={onLogin} style={{ background: "none", border: `1px solid ${BORDER}`, color: TEXT, padding: "8px 18px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Login</button>

@@ -100,7 +100,7 @@ export const Cadastro = ({ onLogin, onBack }) => {
           <Scale size={18} color={GOLD_DIM} />
         </div>
         <span style={{ fontWeight: 800, color: TEXT }}>
-          Ai<span style={{ color: GOLD_DIM }}>Legal</span>
+          PBM<span style={{ color: GOLD_DIM }}>app</span>
         </span>
       </div>
 
