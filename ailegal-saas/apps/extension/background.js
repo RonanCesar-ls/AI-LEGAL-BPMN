@@ -104,7 +104,7 @@ async function sendAccumulated() {
         updated[domain] = 0;
       }
     } catch (err) {
-      console.error('[AILegal Monitor] Falha ao enviar:', domain, err);
+      console.error('[PBMapp Monitor] Falha ao enviar:', domain, err);
     }
   }
 

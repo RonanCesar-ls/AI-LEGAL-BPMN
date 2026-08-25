@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { pool } from '../../database/connection.js';
 
-const JWT_SECRET      = process.env.JWT_SECRET ?? 'ailegal_secret_dev';
+const JWT_SECRET      = process.env.JWT_SECRET ?? 'pbmapp_secret_dev';
 const JWT_EXPIRES_IN  = '7d';
 const SALT_ROUNDS     = 10;
 

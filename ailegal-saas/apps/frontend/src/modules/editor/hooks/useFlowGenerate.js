@@ -79,7 +79,7 @@ export function useFlowGenerate({ activeProjectId, setProjects }) {
 
     try {
       // INJEÇÃO BRUTA E INFALÍVEL: Pega o token direto e limpa aspas (se houver)
-      const rawToken = localStorage.getItem('ailegal_token');
+      const rawToken = localStorage.getItem('pbmapp_token');
       const cleanToken = rawToken ? rawToken.replace(/['"]+/g, '') : '';
 
       const extractedTexts = await Promise.all(

@@ -364,7 +364,7 @@ export const tasksController = {
       if (token) {
         try {
           const jwt = await import('jsonwebtoken');
-          const decoded = jwt.verify(token, process.env.JWT_SECRET ?? 'ailegal_secret_dev') as any;
+          const decoded = jwt.verify(token, process.env.JWT_SECRET ?? 'pbmapp_secret_dev') as any;
           user = decoded;
         } catch {
           return res.status(401).end();

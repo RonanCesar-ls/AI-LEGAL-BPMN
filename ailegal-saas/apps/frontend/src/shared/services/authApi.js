@@ -1,6 +1,6 @@
 const API = import.meta.env.VITE_API_URL;
-const TOKEN_KEY = 'ailegal_token';
-const USER_KEY  = 'ailegal_user';
+const TOKEN_KEY = 'pbmapp_token';
+const USER_KEY  = 'pbmapp_user';
 
 export const authApi = {
 

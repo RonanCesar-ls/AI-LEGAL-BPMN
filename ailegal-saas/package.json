@@ -1,5 +1,5 @@
 {
-  "name": "ailegal-monorepo",
+  "name": "pbmapp-monorepo",
   "private": true,
   "workspaces": [
     "apps/*",

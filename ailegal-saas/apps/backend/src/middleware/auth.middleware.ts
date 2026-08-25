@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'ailegal_secret_dev';
+const JWT_SECRET = process.env.JWT_SECRET ?? 'pbmapp_secret_dev';
 
 export interface JwtPayload {
   userId: string;

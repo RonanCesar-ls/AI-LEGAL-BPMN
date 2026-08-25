@@ -71,7 +71,7 @@ export const Landing = ({ onLogin, onCadastro }) => {
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: DANGER }} />
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: GOLD }} />
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#4ecdc4" }} />
-            <span style={{ color: MUTED, fontSize: 12, marginLeft: 8, fontWeight: 500 }}>AiLegal — Processo Penal.rcc</span>
+            <span style={{ color: MUTED, fontSize: 12, marginLeft: 8, fontWeight: 500 }}>PBMapp — Processo Penal.rcc</span>
           </div>
           <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
             <FlowChartEditor isReadOnly={true} nodes={previewNodes} edges={previewEdges} />

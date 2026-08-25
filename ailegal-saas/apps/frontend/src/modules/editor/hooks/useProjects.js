@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { projectsApi } from '../../../shared/services/projectsApi';
 
-const STORAGE_KEY  = 'ailegal_projects';
+const STORAGE_KEY  = 'pbmapp_projects';
 const SAVE_DELAY   = 2000; // salva 2s após última mudança (debounce)
 
 // Helper para validar UUID

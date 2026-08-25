@@ -52,7 +52,7 @@ async function bootstrap() {
   }
 
   app.listen(PORT, () => {
-    console.log(`Servidor AILegal rodando na porta ${PORT}`);
+    console.log(`Servidor PBMapp rodando na porta ${PORT}`);
   });
 }
 

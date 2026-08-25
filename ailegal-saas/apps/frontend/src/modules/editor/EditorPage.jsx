@@ -141,7 +141,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
           <div style={{ background: `${GOLD}22`, borderRadius: 8, padding: 8, flexShrink: 0 }}>
             <Scale size={18} color={GOLD_DIM} />
           </div>
-          {sidebarOpen && <span style={{ fontWeight: 800, fontSize: 16 }}>AiLegal</span>}
+          {sidebarOpen && <span style={{ fontWeight: 800, fontSize: 16 }}>PBMapp</span>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer" }}>
             <Menu size={18} color={MUTED}/>
           </button>

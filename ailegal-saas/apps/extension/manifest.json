@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AILegal Monitor",
+  "name": "PBMapp Monitor",
   "version": "1.0.0",
-  "description": "Monitoramento de tempo em abas operacionais para o AILegal.",
+  "description": "Monitoramento de tempo em abas operacionais para o PBMapp.",
 
   "permissions": [
     "tabs",

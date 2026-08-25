@@ -1,5 +1,5 @@
 import { generateText } from './ai.provider.js';
-import { FlowchartData } from '@ailegal/shared-types';
+import { FlowchartData } from '@pbmapp/shared-types';
 
 // ─── PROMPT BASE (geração de fluxo novo) ─────────────────────────────────────
 
