@@ -4,7 +4,7 @@ const GIS_SCRIPT = 'https://accounts.google.com/gsi/client';
 
 export const GoogleSignInButton = ({ onCredential, disabled, onLoadError }) => {
   const elementRef = useRef(null);
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const clientId = window.__PBMAPP_CONFIG__?.GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
     if (!clientId || !elementRef.current) return undefined;
