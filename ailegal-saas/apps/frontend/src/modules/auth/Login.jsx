@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Scale, Mail, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../../shared/services/authApi';
 
@@ -47,6 +47,57 @@ export const Login = ({ onLogin, onCadastro, onBack }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+  const googleButtonRef          = useRef(null);
+  const googleClientId           = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  useEffect(() => {
+    if (!googleClientId || !googleButtonRef.current) return undefined;
+
+    const initializeGoogle = () => {
+      if (!window.google || !googleButtonRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async ({ credential }) => {
+          setLoading(true);
+          setError('');
+          try {
+            const data = await authApi.google(credential);
+            onLogin(data.user);
+          } catch (err) {
+            setError(err.message);
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'rectangular',
+        width: 324,
+        locale: 'pt-BR',
+      });
+    };
+
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      initializeGoogle();
+      return undefined;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = initializeGoogle;
+    script.onerror = () => setError('N\u00e3o foi poss\u00edvel carregar o login com Google.');
+    document.head.appendChild(script);
+
+    return () => { script.onload = null; };
+  }, [googleClientId, onLogin]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -127,6 +178,17 @@ export const Login = ({ onLogin, onCadastro, onBack }) => {
           {loading ? <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> : null}
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
+
+        {googleClientId && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0' }}>
+              <span style={{ height: 1, flex: 1, background: BORDER }} />
+              <span style={{ color: MUTED, fontSize: 12 }}>ou</span>
+              <span style={{ height: 1, flex: 1, background: BORDER }} />
+            </div>
+            <div ref={googleButtonRef} style={{ display: 'flex', justifyContent: 'center', opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }} />
+          </>
+        )}
 
         <p style={{ textAlign: 'center', marginTop: 24, color: MUTED, fontSize: 14 }}>
           Não tem conta?{' '}

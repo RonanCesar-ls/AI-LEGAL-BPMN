@@ -1,11 +1,27 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { randomBytes } from 'node:crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { pool } from '../../database/connection.js';
 
 const JWT_SECRET      = process.env.JWT_SECRET ?? 'pbmapp_secret_dev';
 const JWT_EXPIRES_IN  = '7d';
 const SALT_ROUNDS     = 10;
+const googleClient = new OAuth2Client();
+
+function createSession(user: { id: string; name: string; email: string; role: string }) {
+  const token = jwt.sign(
+    { userId: user.id, name: user.name, email: user.email, role: user.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  return {
+    token,
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+  };
+}
 
 export const authController = {
 
@@ -44,21 +60,7 @@ export const authController = {
 
       const user = result.rows[0];
 
-      const token = jwt.sign(
-        { userId: user.id, name: user.name, email: user.email, role: user.role },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-      );
-
-      return res.status(201).json({
-        token,
-        user: {
-          id:    user.id,
-          name:  user.name,
-          email: user.email,
-          role:  user.role,
-        },
-      });
+      return res.status(201).json(createSession(user));
 
     } catch (err) {
       console.error('[auth.register]', err);
@@ -91,25 +93,60 @@ export const authController = {
         return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
       }
 
-      const token = jwt.sign(
-        { userId: user.id, name: user.name, email: user.email, role: user.role },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-      );
-
-      return res.json({
-        token,
-        user: {
-          id:    user.id,
-          name:  user.name,
-          email: user.email,
-          role:  user.role,
-        },
-      });
+      return res.json(createSession(user));
 
     } catch (err) {
       console.error('[auth.login]', err);
       return res.status(500).json({ error: 'Falha ao fazer login.' });
+    }
+  },
+
+  google: async (req: Request, res: Response) => {
+    try {
+      const { credential } = req.body;
+      const googleClientId = process.env.GOOGLE_CLIENT_ID;
+
+      if (!credential || typeof credential !== 'string') {
+        return res.status(400).json({ error: 'Credencial do Google obrigat\u00f3ria.' });
+      }
+
+      if (!googleClientId) {
+        console.error('[auth.google] GOOGLE_CLIENT_ID n\u00e3o configurado.');
+        return res.status(503).json({ error: 'Login com Google n\u00e3o est\u00e1 configurado.' });
+      }
+
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: googleClientId,
+      });
+      const payload = ticket.getPayload();
+
+      if (!payload?.email || payload.email_verified !== true) {
+        return res.status(401).json({ error: 'N\u00e3o foi poss\u00edvel confirmar o e-mail da conta Google.' });
+      }
+
+      const email = payload.email.toLowerCase().trim();
+      let result = await pool.query(
+        'SELECT id, name, email, role FROM users WHERE email = $1',
+        [email]
+      );
+
+      if (result.rows.length === 0) {
+        // A senha aleat\u00f3ria preserva a coluna NOT NULL sem permitir login por senha nessa conta.
+        const unavailablePassword = await bcrypt.hash(randomBytes(32).toString('hex'), SALT_ROUNDS);
+        const name = payload.name?.trim() || email.split('@')[0];
+
+        result = await pool.query(`
+          INSERT INTO users (name, email, password, role)
+          VALUES ($1, $2, $3, 'user')
+          RETURNING id, name, email, role
+        `, [name, email, unavailablePassword]);
+      }
+
+      return res.json(createSession(result.rows[0]));
+    } catch (err) {
+      console.error('[auth.google] Falha ao validar credencial Google:', err);
+      return res.status(401).json({ error: 'Credencial Google inv\u00e1lida ou expirada.' });
     }
   },
 

@@ -65,6 +65,20 @@ export const authApi = {
     return data;
   },
 
+  async google(credential) {
+    const res = await fetch(`${API}/api/auth/google`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ credential }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Falha ao entrar com Google.');
+
+    this.saveSession(data.token, data.user);
+    return data;
+  },
+
   async me() {
     const res = await fetch(`${API}/api/auth/me`, {
       headers: this.headers(),
