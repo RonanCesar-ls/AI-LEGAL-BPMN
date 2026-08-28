@@ -51,6 +51,26 @@ export const authApi = {
     return data;
   },
 
+  async register({ name, email, password }) {
+    const res = await fetch(`${API}/api/auth/register`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Falha ao criar conta.');
+    this.saveSession(data.token, data.user);
+    return data;
+  },
+
+  async login({ email, password }) {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Falha ao fazer login.');
+    this.saveSession(data.token, data.user);
+    return data;
+  },
+
   async me() {
     const res = await fetch(`${API}/api/auth/me`, {
       headers: this.headers(),

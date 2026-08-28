@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Landing }            from './modules/landing/Landing';
 import { Login }              from './modules/auth/Login';
+import { Cadastro }           from './modules/auth/Cadastro';
 import { EditorPage }         from './modules/editor/EditorPage';
 import { DiarioDeBordoPage }  from './modules/diario/DiarioDeBordoPage';
 import { authApi }            from './shared/services/authApi';
@@ -85,8 +86,9 @@ export default function App() {
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0} }
       `}</style>
 
-      {screen === 'landing'  && <Landing onLogin={() => setScreen('login')} />}
-      {screen === 'login'    && <Login onLogin={handleLogin} onBack={() => setScreen('landing')} />}
+      {screen === 'landing'  && <Landing onLogin={() => setScreen('login')} onCadastro={() => setScreen('cadastro')} />}
+      {screen === 'login'    && <Login onLogin={handleLogin} onCadastro={() => setScreen('cadastro')} onBack={() => setScreen('landing')} />}
+      {screen === 'cadastro' && <Cadastro onLogin={handleLogin} onBack={() => setScreen('login')} />}
 
       {screen === 'app' && user && (
         <EditorPage
