@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 const corsConfig = {
   origin: [
     'http://app.177.104.179.163.nip.io',
+    'https://app.177.104.179.163.nip.io',
     'http://localhost:5173',
     'chrome-extension://flbbhdbclkjiaakniodphgkcebmdednp',
   ],
