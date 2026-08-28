@@ -3,7 +3,7 @@ import { Scale, Upload, GitBranch, Cpu, Shield, BarChart2, Mail, Zap, ArrowRight
 import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
 
-export const Landing = ({ onLogin, onCadastro }) => {
+export const Landing = ({ onLogin }) => {
   const features = [
     { icon: Upload, title: "Importação RCC", desc: "Carregue arquivos RCC e o sistema processa automaticamente as entidades jurídicas." },
     { icon: GitBranch, title: "Fluxograma com IA", desc: "A LLM analisa e gera diagramas BPMN interativos e personalizados." },
@@ -32,8 +32,7 @@ export const Landing = ({ onLogin, onCadastro }) => {
           <span style={{ fontWeight: 800, fontSize: 18 }}>PBM<span style={{ color: GOLD_DIM }}>app</span></span>
         </div>
         <nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={onLogin} style={{ background: "none", border: `1px solid ${BORDER}`, color: TEXT, padding: "8px 18px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Login</button>
-          <Btn onClick={onCadastro} size="sm">Cadastro</Btn>
+          <Btn onClick={onLogin} size="sm">Entrar com Google</Btn>
           <button style={{ background: "none", border: "none", color: MUTED, padding: "8px 16px", fontFamily: "inherit", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Contate-Nos</button>
         </nav>
       </header>
@@ -52,8 +51,8 @@ export const Landing = ({ onLogin, onCadastro }) => {
             Importe arquivos RCC, mapeie gargalos operacionais e gere fluxogramas precisos (padrão BPMN) com o poder da Inteligência Artificial Generativa.
           </p>
           <div style={{ display: "flex", gap: 12 }}>
-            <Btn onClick={onCadastro} size="lg"><Zap size={16} />Começar Grátis</Btn>
-            <Btn onClick={onLogin} variant="outline" size="lg">Ver Demo</Btn>
+            <Btn onClick={onLogin} size="lg"><Zap size={16} />Começar com Google</Btn>
+            <Btn onClick={onLogin} variant="outline" size="lg">Entrar com Google</Btn>
           </div>
           
           <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
@@ -100,7 +99,7 @@ export const Landing = ({ onLogin, onCadastro }) => {
       <section style={{ padding: "80px 60px", textAlign: "center", background: BG }}>
         <h2 style={{ fontSize: 40, fontWeight: 800, fontFamily: "'Playfair Display', serif", marginBottom: 16 }}>Pronto para começar?</h2>
         <p style={{ color: MUTED, marginBottom: 32 }}>Crie sua conta gratuitamente e transforme seu fluxo jurídico hoje.</p>
-        <Btn onClick={onCadastro} size="lg"><ArrowRight size={16} />Criar conta grátis</Btn>
+        <Btn onClick={onLogin} size="lg"><ArrowRight size={16} />Continuar com Google</Btn>
       </section>
     </div>
   );
