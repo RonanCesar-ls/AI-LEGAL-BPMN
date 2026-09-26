@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { getLayoutedElements } from '../../../shared/utils/layout';
 import { authApi } from '../../../shared/services/authApi';
 
-const API = import.meta.env.VITE_API_URL;
+import { API_URL as API } from '../../../shared/config.js';
 
 export function useFlowGenerate({ activeProjectId, setProjects }) {
   const [generating, setGenerating] = useState(false);

@@ -1,6 +1,6 @@
 import { authApi } from './authApi';
 
-const API = import.meta.env.VITE_API_URL;
+import { API_URL as API } from '../config.js';
 
 export const tasksApi = {
   

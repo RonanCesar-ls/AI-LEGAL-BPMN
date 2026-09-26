@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Eye, EyeOff, Loader, Lock, Mail, Scale, User } from 'lucide-react';
+import { Eye, EyeOff, Loader, Lock, Mail, User } from 'lucide-react';
 import { authApi } from '../../shared/services/authApi';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
@@ -29,9 +29,9 @@ export const Cadastro = ({ onLogin, onBack }) => {
   const field = (label, icon, props) => <><label style={{ display: 'block', color: MUTED, fontSize: 12, marginBottom: 6, fontWeight: 600, letterSpacing: 1 }}>{label}</label><div style={{ position: 'relative', marginBottom: 16 }}>{icon}{props}</div></>;
   const inputStyle = { width: '100%', boxSizing: 'border-box', background: '#f8f9fa', border: `1px solid ${BORDER}`, borderRadius: 8, color: TEXT, fontFamily: 'inherit', fontSize: 14, padding: '12px 40px', outline: 'none' };
   return <div style={{ background: BG, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0' }}>
-    <div style={{ position: 'absolute', top: 24, left: 32, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={onBack}><div style={{ background: `${GOLD}22`, borderRadius: 8, padding: 7 }}><Scale size={18} color={GOLD_DIM} /></div><span style={{ fontWeight: 800, color: TEXT }}>PBM<span style={{ color: GOLD_DIM }}>app</span></span></div>
+    <button type="button" aria-label="Voltar para o login" style={{ position: 'absolute', top: 24, left: 32, display: 'flex', alignItems: 'center', cursor: 'pointer', border: 0, background: 'none', padding: 0 }} onClick={onBack}><img src="/pbmapp-logo.png" alt="PBMapp" style={{ display: 'block', width: 150, height: 'auto' }} /></button>
     <main style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '44px 48px', width: 440, boxShadow: '0 20px 40px rgba(0,0,0,.04)' }}>
-      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, marginBottom: 6 }}>Criar conta <span style={{ color: GOLD }}>⚖</span></h1><p style={{ color: MUTED, fontSize: 14, marginBottom: 28 }}>Cadastre-se com seus dados ou com sua conta Google.</p>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, marginBottom: 6 }}>Criar conta</h1><p style={{ color: MUTED, fontSize: 14, marginBottom: 28 }}>Cadastre-se com seus dados ou com sua conta Google.</p>
       {field('NOME COMPLETO', <User size={15} style={{ position: 'absolute', left: 14, top: 13, color: MUTED }} />, <input value={name} onChange={e => setName(e.target.value)} placeholder="Dr. João Silva" style={inputStyle} />)}
       {field('E-MAIL', <Mail size={15} style={{ position: 'absolute', left: 14, top: 13, color: MUTED }} />, <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" style={inputStyle} />)}
       {field('SENHA', <Lock size={15} style={{ position: 'absolute', left: 14, top: 13, color: MUTED }} />, <><input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" style={inputStyle} /><button type="button" onClick={() => setShowPassword(value => !value)} style={{ position: 'absolute', right: 12, top: 10, background: 'none', border: 0, color: MUTED }}>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></>)}

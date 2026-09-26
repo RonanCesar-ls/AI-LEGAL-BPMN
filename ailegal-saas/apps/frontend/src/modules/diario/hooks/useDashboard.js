@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { authApi } from '../../../shared/services/authApi';
 
-const API = import.meta.env.VITE_API_URL;
+import { API_URL as API } from '../../../shared/config.js';
 
 export function useDashboard(selectedDateISO) {
   const [metrics, setMetrics]     = useState(null);

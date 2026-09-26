@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_URL;
+import { API_URL as API } from '../config.js';
 const TOKEN_KEY = 'pbmapp_token';
 const USER_KEY  = 'pbmapp_user';
 

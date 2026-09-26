@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Scale, Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard, Presentation, ListTodo, Monitor } from "lucide-react";
+import { Upload, FileText, Save, User, LogOut, ChevronRight, Plus, X, Zap, Loader, GitBranch, Menu, LayoutDashboard, Presentation, ListTodo, Monitor } from "lucide-react";
 import { useProjects } from "./hooks/useProjects";
 import { useFlowGenerate } from "./hooks/useFlowGenerate";
 import { FlowChartEditor } from "./components/FlowChartEditor";
@@ -138,9 +138,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
 
       <div style={{ width: sidebarOpen ? 220 : 64, background: SURFACE, borderRight: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", transition: "width .2s" }}>
         <div style={{ padding: "18px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${BORDER}` }}>
-          <div style={{ background: `${GOLD}22`, borderRadius: 8, padding: 8, flexShrink: 0 }}>
-            <Scale size={18} color={GOLD_DIM} />
-          </div>
+          <img src="/pbmapp-mark.png" alt="PBMapp" style={{ width: 34, height: 34, objectFit: 'contain', flexShrink: 0 }} />
           {sidebarOpen && <span style={{ fontWeight: 800, fontSize: 16 }}>PBMapp</span>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer" }}>
             <Menu size={18} color={MUTED}/>

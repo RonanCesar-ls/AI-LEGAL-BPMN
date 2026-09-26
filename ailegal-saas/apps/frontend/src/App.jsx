@@ -66,7 +66,7 @@ export default function App() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f5f7' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 32, marginBottom: 16 }}>⚖</div>
+          <img src="/pbmapp-mark.png" alt="PBMapp" style={{ width: 52, height: 52, objectFit: 'contain', marginBottom: 16 }} />
           <p style={{ color: '#64748b', fontSize: 14 }}>Carregando PBMapp...</p>
         </div>
       </div>

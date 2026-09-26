@@ -1,5 +1,5 @@
 import { FlowChartEditor } from "../editor/components/FlowChartEditor";
-import { Scale, Upload, GitBranch, Cpu, Shield, BarChart2, Mail, Zap, ArrowRight } from "lucide-react";
+import { Upload, GitBranch, Cpu, Shield, BarChart2, Mail, Zap, ArrowRight } from "lucide-react";
 import { Btn } from "../../shared/components/Btn";
 import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
 
@@ -28,8 +28,7 @@ export const Landing = ({ onLogin, onCadastro }) => {
     <div style={{ background: BG, minHeight: "100vh", color: TEXT, fontFamily: "'DM Sans', sans-serif" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 60px", borderBottom: `1px solid ${BORDER}`, background: SURFACE, position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ background: `${GOLD}22`, borderRadius: 10, padding: 8 }}><Scale size={20} color={GOLD_DIM} /></div>
-          <span style={{ fontWeight: 800, fontSize: 18 }}>PBM<span style={{ color: GOLD_DIM }}>app</span></span>
+          <img src="/pbmapp-logo.png" alt="PBMapp" style={{ display: 'block', width: 150, height: 'auto' }} />
         </div>
         <nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button onClick={onLogin} style={{ background: "none", border: `1px solid ${BORDER}`, color: TEXT, padding: "8px 18px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Login</button>

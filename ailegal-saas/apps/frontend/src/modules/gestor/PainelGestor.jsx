@@ -244,7 +244,7 @@ export function PainelGestor({ user, onVoltar }) {
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, background: T, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>⚖</div>
+          <div style={{ width: 34, height: 34, background: '#fff', border: `1px solid ${BRD}`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><img src="/pbmapp-mark.png" alt="PBMapp" style={{ width: 26, height: 26, objectFit: 'contain' }} /></div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.2 }}>Painel do Gestor</div>
             <div style={{ fontSize: 11, color: M }}>{today}</div>

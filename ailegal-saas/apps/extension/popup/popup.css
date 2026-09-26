@@ -19,7 +19,7 @@ body {
   border-bottom: 1px solid #e2e8f0;
 }
 
-.logo { font-weight: 800; font-size: 14px; color: #1e293b; }
+.logo { display: block; width: 150px; height: auto; }
 
 .status-dot {
   width: 8px; height: 8px;
