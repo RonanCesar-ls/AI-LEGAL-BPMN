@@ -54,15 +54,6 @@ export const Landing = ({ onLogin, onCadastro }) => {
             <Btn onClick={onCadastro} size="lg"><Zap size={16} />Começar Grátis</Btn>
             <Btn onClick={onLogin} variant="outline" size="lg">Ver Demo</Btn>
           </div>
-          
-          <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
-            {[["500+", "Escritórios"], ["12k+", "Processos"], ["98%", "Precisão"]].map(([v, l]) => (
-              <div key={l}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: GOLD_DIM }}>{v}</div>
-                <div style={{ color: MUTED, fontSize: 13, fontWeight: 600 }}>{l}</div>
-              </div>
-            ))}
-          </div>
         </div>
         
         <div style={{ background: CARD, borderRadius: 16, border: `1px solid ${BORDER}`, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.05)", height: 400, display: "flex", flexDirection: "column" }}>
