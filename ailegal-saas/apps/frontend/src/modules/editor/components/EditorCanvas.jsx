@@ -27,8 +27,8 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
   const onConnect = useCallback((params) => {
     if (setEdges) setEdges((eds) => addEdge({
       ...params, type: 'smoothstep',
-      markerEnd: { type: 'arrowclosed', color: '#64748b' },
-      style: { stroke: '#64748b', strokeWidth: 2 }
+      markerEnd: { type: 'arrowclosed', color: '#475569' },
+      style: { stroke: '#475569', strokeWidth: 2 }
     }, eds));
   }, [setEdges]);
 
@@ -190,7 +190,7 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
             background: '#fff', borderRadius: 12, padding: 24, width: 340,
             border: '1px solid #e2e8f0', boxShadow: '0 16px 48px rgba(0,0,0,0.15)'
           }} onClick={e => e.stopPropagation()}>
-            <p style={{ fontWeight: 700, marginBottom: 12, fontSize: 14, color: '#1e293b' }}>Editar texto do elemento</p>
+            <p style={{ fontWeight: 700, marginBottom: 12, fontSize: 14, color: '#111E38' }}>Editar texto do elemento</p>
             <input
               autoFocus
               value={editingValue}
@@ -198,13 +198,13 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
               onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditingId(null); }}
               style={{
                 width: '100%', padding: '10px 12px', borderRadius: 8, fontSize: 14,
-                border: '1.5px solid #d4a017', outline: 'none', color: '#1e293b',
+                border: '1.5px solid #00C875', outline: 'none', color: '#111E38',
                 fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box'
               }}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setEditingId(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'none', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>Cancelar</button>
-              <button onClick={commitEdit} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#d4a017', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Salvar — Enter</button>
+              <button onClick={commitEdit} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#00C875', color: '#111E38', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Salvar — Enter</button>
             </div>
           </div>
         </div>
@@ -223,8 +223,8 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ background: '#fee2e2', borderRadius: 8, padding: '6px 10px', fontSize: 18 }}>🔴</div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#1e293b' }}>Registrar Impedimento</div>
-                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: '#111E38' }}>Registrar Impedimento</div>
+                <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>
                   Explique o que está bloqueando esta tarefa
                 </div>
               </div>
@@ -244,7 +244,7 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
               placeholder="Ex: Faltou o documento X. Aguardando o cliente enviar."
               style={{
                 width: '100%', minHeight: 80, padding: '10px 12px',
-                borderRadius: 8, fontSize: 13, color: '#1e293b',
+                borderRadius: 8, fontSize: 13, color: '#111E38',
                 border: '1.5px solid #fca5a5', outline: 'none',
                 fontFamily: 'inherit', resize: 'vertical',
                 boxSizing: 'border-box', marginBottom: 16,
@@ -260,7 +260,7 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
                 style={{
                   padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0',
                   background: 'none', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit',
-                  color: '#64748b'
+                  color: '#475569'
                 }}
               >
                 Cancelar
@@ -313,10 +313,10 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
 
             <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#1e293b' }}>📋 Timeline</div>
-                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{timelineModal.nodeLabel}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: '#111E38' }}>📋 Timeline</div>
+                <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>{timelineModal.nodeLabel}</div>
               </div>
-              <button onClick={() => setTimelineModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#64748b' }}>✕</button>
+              <button onClick={() => setTimelineModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#475569' }}>✕</button>
             </div>
 
             {timelineModal.sla && (
@@ -328,7 +328,7 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
                 <div style={{ fontWeight: 700, fontSize: 12, color: timelineModal.sla.isViolated ? '#dc2626' : '#16a34a' }}>
                   {timelineModal.sla.isViolated ? '⚠ SLA Violado' : '✓ SLA OK'}
                 </div>
-                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>
                   Esperado: {Math.round(timelineModal.sla.expectedMinutes / 60)}h
                   {timelineModal.sla.actualMinutes != null && (
                     <> · Real: {Math.round(timelineModal.sla.actualMinutes / 60)}h
@@ -348,20 +348,20 @@ export const EditorCanvas = ({ nodes, setNodes, edges, setEdges, isReadOnly, act
                 timelineModal.timeline?.map((event, i) => (
                   <div key={event.id} style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#6366f1', flexShrink: 0, marginTop: 4 }} />
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2563EB', flexShrink: 0, marginTop: 4 }} />
                       {i < timelineModal.timeline.length - 1 && (
                         <div style={{ width: 2, flex: 1, background: '#e2e8f0', marginTop: 4 }} />
                       )}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#1e293b' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#111E38' }}>
                         {event.actor} alterou o status
                       </div>
-                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>
                         {event.fromStatus ? `${event.fromStatus} →` : 'Início →'} <strong>{event.toStatus}</strong>
                       </div>
                       {event.note && (
-                        <div style={{ fontSize: 11, color: '#6366f1', marginTop: 4, fontStyle: 'italic' }}>
+                        <div style={{ fontSize: 11, color: '#2563EB', marginTop: 4, fontStyle: 'italic' }}>
                           "{event.note}"
                         </div>
                       )}

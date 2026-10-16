@@ -64,10 +64,10 @@ export default function App() {
 
   if (screen === 'loading') {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f5f7' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
         <div style={{ textAlign: 'center' }}>
           <img src="/pbmapp-mark.png" alt="PBMapp" style={{ width: 52, height: 52, objectFit: 'contain', marginBottom: 16 }} />
-          <p style={{ color: '#64748b', fontSize: 14 }}>Carregando PBMapp...</p>
+          <p style={{ color: '#475569', fontSize: 14 }}>Carregando PBMapp...</p>
         </div>
       </div>
     );
@@ -75,16 +75,6 @@ export default function App() {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
-        html, body { margin: 0; padding: 0; min-height: 100vh; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0} }
-      `}</style>
 
       {screen === 'landing'  && <Landing onLogin={() => setScreen('login')} onCadastro={() => setScreen('cadastro')} />}
       {screen === 'login'    && <Login onLogin={handleLogin} onCadastro={() => setScreen('cadastro')} onBack={() => setScreen('landing')} />}

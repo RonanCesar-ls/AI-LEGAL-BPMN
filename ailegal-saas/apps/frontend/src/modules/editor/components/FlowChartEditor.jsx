@@ -8,8 +8,8 @@ export const FlowChartEditor = ({ nodes, setNodes, edges, setEdges, isReadOnly =
   const [activeTool, setActiveTool] = useState('select');
 
   const BPMN_TOOLS = [
-    { type: "select",   label: "Selecionar", icon: () => <MousePointer2 size={18} color="#64748b" /> },
-    { type: "connect",  label: "Conectar",   icon: () => <ArrowRight size={18} color="#64748b" /> },
+    { type: "select",   label: "Selecionar", icon: () => <MousePointer2 size={18} color="#475569" /> },
+    { type: "connect",  label: "Conectar",   icon: () => <ArrowRight size={18} color="#475569" /> },
     { type: "start",    label: "Início",     icon: (c) => <circle cx="12" cy="12" r="8" fill={c?.fill} stroke={c?.stroke} strokeWidth="2" /> },
     { type: "task",     label: "Tarefa",     icon: (c) => <rect x="2" y="6" width="20" height="12" rx="2" fill={c?.fill} stroke={c?.stroke} strokeWidth="2" /> },
     { type: "gateway",  label: "Decisão",    icon: (c) => <polygon points="12,2 22,12 12,22 2,12" fill={c?.fill} stroke={c?.stroke} strokeWidth="2" /> },
@@ -49,7 +49,7 @@ export const FlowChartEditor = ({ nodes, setNodes, edges, setEdges, isReadOnly =
                     cursor: isDraggable ? "grab" : "pointer",
                     padding: 8, borderRadius: 8,
                     background: isActive ? "#fef3c7" : "transparent",
-                    border: isActive ? "1.5px solid #d4a017" : "1px solid #e2e8f0",
+                    border: isActive ? "1.5px solid #00C875" : "1px solid #e2e8f0",
                     transition: "all .15s",
                   }}
                 >

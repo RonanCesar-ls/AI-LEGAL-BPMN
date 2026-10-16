@@ -57,7 +57,7 @@ function WalkthroughCanvas({ nodes, edges, currentIndex, steps }) {
       minZoom={0.3}
       maxZoom={2}
     >
-      <Background color="#1e293b" gap={24} size={2} />
+      <Background color="#111E38" gap={24} size={2} />
       <Controls showInteractive={false} />
     </ReactFlow>
   );
@@ -131,9 +131,9 @@ export function WalkthroughPresentation({ nodes, edges, onExit }) {
           </ReactFlowProvider>
         </div>
 
-        <div style={{ width: 320, background: '#1e293b', borderLeft: '1px solid rgba(255,255,255,0.08)', padding: 24, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ width: 320, background: '#111E38', borderLeft: '1px solid rgba(255,255,255,0.08)', padding: 24, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
 
-          <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
             Etapa {currentIndex + 1} de {steps.length}
           </div>
 
@@ -147,13 +147,13 @@ export function WalkthroughPresentation({ nodes, edges, onExit }) {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 11, color: '#64748b', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Responsável</p>
+            <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Responsável</p>
             <p style={{ fontSize: 14, color: '#e2e8f0' }}>👤 {currentNode.data?.actor ?? 'Sistema'}</p>
           </div>
 
           {currentNode.data?.sla?.expectedMinutes && (
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, color: '#64748b', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>SLA</p>
+              <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>SLA</p>
               <p style={{ fontSize: 14, color: '#e2e8f0' }}>
                 {Math.round(currentNode.data.sla.expectedMinutes / 60)}h esperadas
               </p>
@@ -167,7 +167,7 @@ export function WalkthroughPresentation({ nodes, edges, onExit }) {
 
           {currentNode.data?.sourceFile && (
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, color: '#64748b', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Origem</p>
+              <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Origem</p>
               <p style={{ fontSize: 13, color: '#94a3b8' }}>📄 {currentNode.data.sourceFile}</p>
             </div>
           )}
@@ -177,7 +177,7 @@ export function WalkthroughPresentation({ nodes, edges, onExit }) {
               <div style={{
                 height: '100%',
                 width: `${((currentIndex + 1) / steps.length) * 100}%`,
-                background: '#d4a017',
+                background: '#00C875',
                 borderRadius: 2,
                 transition: 'width .3s',
               }} />
@@ -202,8 +202,8 @@ export function WalkthroughPresentation({ nodes, edges, onExit }) {
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   padding: '10px', borderRadius: 8, border: 'none',
-                  background: currentIndex === steps.length - 1 ? 'rgba(255,255,255,0.05)' : '#d4a017',
-                  color: currentIndex === steps.length - 1 ? '#475569' : '#1e293b',
+                  background: currentIndex === steps.length - 1 ? 'rgba(255,255,255,0.05)' : '#00C875',
+                  color: currentIndex === steps.length - 1 ? '#475569' : '#111E38',
                   cursor: currentIndex === steps.length - 1 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700,
                 }}
               >

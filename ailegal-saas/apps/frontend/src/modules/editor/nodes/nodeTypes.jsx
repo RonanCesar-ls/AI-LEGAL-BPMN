@@ -46,13 +46,13 @@ export const TaskNode = ({ data }) => {
     data.status
   );
   return (
-    <div style={{ ...style, padding: 12, borderRadius: 8, width: 150, textAlign: 'center', fontSize: 11, fontWeight: 'bold', color: '#1e293b', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+    <div style={{ ...style, padding: 12, borderRadius: 8, width: 150, textAlign: 'center', fontSize: 11, fontWeight: 'bold', color: '#111E38', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
       <Handle type="target" position={Position.Left} style={{ background: '#3b82f6', width: 10, height: 10 }} />
       <div>
         {data.label}
         <StatusBadge status={data.status} />
       </div>
-      <div style={{ fontSize: 9, color: '#64748b', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      <div style={{ fontSize: 9, color: '#475569', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         👤 {data.actor || 'Sistema'}
       </div>
       <SlaWarning sla={data.sla} />
@@ -86,7 +86,7 @@ export const TaskNodeWithTooltip = (props) => {
           left: '50%',
           transform: 'translateX(-50%)',
           marginBottom: 8,
-          background: '#1e293b',
+          background: '#111E38',
           color: '#f8fafc',
           padding: '8px 12px',
           borderRadius: 8,
@@ -113,7 +113,7 @@ export const TaskNodeWithTooltip = (props) => {
             transform: 'translateX(-50%) rotate(45deg)',
             width: 8,
             height: 8,
-            background: '#1e293b'
+            background: '#111E38'
           }} />
         </div>
       )}
@@ -129,7 +129,7 @@ export const GatewayNode = ({ data }) => {
   return (
     <div style={{ position: 'relative', width: 80, height: 80, margin: 'auto' }}>
       <div style={{ ...style, width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(45deg)', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-        <div style={{ transform: 'rotate(-45deg)', textAlign: 'center', fontSize: 10, fontWeight: 'bold', color: '#1e293b', padding: 4 }}>
+        <div style={{ transform: 'rotate(-45deg)', textAlign: 'center', fontSize: 10, fontWeight: 'bold', color: '#111E38', padding: 4 }}>
           {data.label}
         </div>
       </div>
@@ -163,7 +163,7 @@ export const EndNode = ({ data }) => (
 export const SwimlaneNode = ({ data }) => (
   <div style={{ width: data.width, height: data.height, borderBottom: '1px solid #cbd5e1', backgroundColor: data.odd ? 'transparent' : '#f1f5f980', display: 'flex' }}>
     <div style={{ width: 40, borderRight: '1px solid #cbd5e1', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ transform: 'rotate(-90deg)', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 800, color: '#64748b', letterSpacing: 1 }}>
+      <div style={{ transform: 'rotate(-90deg)', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 800, color: '#475569', letterSpacing: 1 }}>
         {data.label.toUpperCase()}
       </div>
     </div>

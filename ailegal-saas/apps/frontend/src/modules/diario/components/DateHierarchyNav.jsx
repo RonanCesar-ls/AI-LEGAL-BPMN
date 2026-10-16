@@ -1,10 +1,5 @@
+import { BLUE, BORDER, TEXT, MUTED, SURFACE } from '../../../styles/theme';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-const GOLD    = '#d4a017';
-const BORDER  = '#e2e8f0';
-const TEXT    = '#1e293b';
-const MUTED   = '#64748b';
-const SURFACE = '#ffffff';
 
 export function DateHierarchyNav({ nav }) {
   const {
@@ -37,9 +32,9 @@ export function DateHierarchyNav({ nav }) {
               onClick={() => selectWeek(week)}
               style={{
                 padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-                border: isActive ? `1.5px solid ${GOLD}` : `1px solid ${BORDER}`,
-                background: isActive ? `${GOLD}15` : 'transparent',
-                color: isActive ? '#b88a12' : MUTED,
+                border: isActive ? `1.5px solid ${BLUE}` : `1px solid ${BORDER}`,
+                background: isActive ? `${BLUE}0D` : 'transparent',
+                color: isActive ? BLUE : MUTED,
                 cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
               }}
             >
@@ -59,8 +54,8 @@ export function DateHierarchyNav({ nav }) {
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                 padding: '8px 4px', borderRadius: 10,
-                border: isActive ? `1.5px solid ${GOLD}` : '1px solid transparent',
-                background: isActive ? GOLD : '#f8fafc',
+                border: isActive ? `1.5px solid ${BLUE}` : '1px solid transparent',
+                background: isActive ? BLUE : '#f8fafc',
                 cursor: 'pointer',
               }}
             >

@@ -1,10 +1,7 @@
+import { BORDER, MUTED, TEXT } from '../../../styles/theme';
 import { useState, useEffect, useMemo } from 'react';
 import { History, Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import { tasksApi } from '../../../shared/services/tasksApi';
-
-const BORDER = '#e2e8f0';
-const MUTED  = '#64748b';
-const TEXT   = '#1e293b';
 
 const ACTION_LABELS = {
   update_status: 'alterou o status de',
@@ -13,7 +10,7 @@ const ACTION_LABELS = {
 };
 
 const STATUS_COLORS = {
-  todo:        { label: 'A Fazer',      color: '#64748b' },
+  todo:        { label: 'A Fazer',      color: '#475569' },
   in_progress: { label: 'Em Andamento', color: '#b45309' },
   blocked:     { label: 'Impedido',     color: '#dc2626' },
   done:        { label: 'Concluído',    color: '#16a34a' },
@@ -34,13 +31,13 @@ function AuditEntry({ entry }) {
   return (
     <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', marginTop: 4 }} />
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563EB', marginTop: 4 }} />
         <div style={{ width: 1, flex: 1, background: BORDER, marginTop: 4 }} />
       </div>
 
       <div style={{ flex: 1, paddingBottom: 8 }}>
         <p style={{ fontSize: 12, color: TEXT, fontWeight: 600, lineHeight: 1.5, marginBottom: 2 }}>
-          <span style={{ color: '#6366f1' }}>{entry.description}</span>
+          <span style={{ color: '#2563EB' }}>{entry.description}</span>
           {' '}{actionLabel}{' '}
           {entry.taskTitle && (
             <span style={{ fontStyle: 'italic' }}>"{entry.taskTitle}"</span>
@@ -123,12 +120,12 @@ export function AuditLog({ dateFrom, dateTo, refreshKey }) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <History size={15} color="#6366f1" />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <History size={15} color="#2563EB" />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1 }}>
             Histórico de Auditoria
           </span>
           {logs.length > 0 && (
-            <span style={{ fontSize: 11, background: '#ede9fe', color: '#6366f1', fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
+            <span style={{ fontSize: 11, background: '#EFF6FF', color: '#2563EB', fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
               {logs.length}
             </span>
           )}
@@ -145,9 +142,9 @@ export function AuditLog({ dateFrom, dateTo, refreshKey }) {
                 onClick={() => setFilterMode(mode)}
                 style={{
                   padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                  border: `1px solid ${filterMode === mode ? '#6366f1' : BORDER}`,
-                  background: filterMode === mode ? '#ede9fe' : 'transparent',
-                  color: filterMode === mode ? '#6366f1' : MUTED,
+                  border: `1px solid ${filterMode === mode ? '#2563EB' : BORDER}`,
+                  background: filterMode === mode ? '#EFF6FF' : 'transparent',
+                  color: filterMode === mode ? '#2563EB' : MUTED,
                 }}
               >
                 {mode === 'day' ? '📅 Este dia' : '📆 Esta semana'}

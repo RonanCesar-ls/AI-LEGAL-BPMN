@@ -1,13 +1,9 @@
+import { BORDER, TEXT, MUTED, SURFACE } from '../../../styles/theme';
 import { useState } from 'react';
 import { Plus, Trash2, Loader, ChevronDown } from 'lucide-react';
 
-const BORDER = '#e2e8f0';
-const TEXT   = '#1e293b';
-const MUTED  = '#64748b';
-const SURFACE = '#ffffff';
-
 const STATUS_CONFIG = {
-  todo:        { label: 'A Fazer',      color: '#64748b', bg: '#f1f5f9', dot: '#94a3b8' },
+  todo:        { label: 'A Fazer',      color: '#475569', bg: '#f1f5f9', dot: '#94a3b8' },
   in_progress: { label: 'Em Andamento', color: '#b45309', bg: '#fffbeb', dot: '#eab308' },
   blocked:     { label: 'Impedido',     color: '#dc2626', bg: '#fef2f2', dot: '#ef4444' },
   done:        { label: 'Concluído',    color: '#16a34a', bg: '#f0fdf4', dot: '#22c55e' },
@@ -127,7 +123,7 @@ export function TaskList({ tasks, loading, onAdd, onStatusChange, onRemove }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '10px 16px', borderRadius: 10, border: 'none',
-            background: '#d4a017', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+            background: '#00C875', color: '#111E38', cursor: 'pointer', fontSize: 13, fontWeight: 700,
           }}
         >
           <Plus size={15} /> Adicionar

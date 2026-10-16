@@ -45,7 +45,7 @@ export function FullscreenPresentation({ nodes, edges, onExit }) {
           fitViewOptions={{ padding: 0.15 }}
           proOptions={{ hideAttribution: true }}
         >
-          <Background color="#1e293b" gap={24} size={2} />
+          <Background color="#111E38" gap={24} size={2} />
           <Controls showInteractive={false} />
         </ReactFlow>
       </div>

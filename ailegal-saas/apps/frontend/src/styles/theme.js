@@ -1,18 +1,24 @@
-export const GOLD = "#d4a017";
-export const GOLD_DIM = "#b88a12";
-export const BG = "#f4f5f7"; 
-export const SURFACE = "#ffffff"; 
-export const CARD = "#ffffff"; 
-export const CARD2 = "#f8f9fa"; 
-export const BORDER = "#e2e8f0"; 
-export const TEXT = "#1e293b"; 
-export const MUTED = "#64748b"; 
-export const DANGER = "#ef4444"; 
-
+// PBMapp identity — Conceito e Cores. Dark variants keep small text readable.
+export const NAVY = '#111E38';
+export const GREEN = '#00C875';
+export const GREEN_DARK = '#007A49';
+export const BLUE = '#2563EB';
+export const BLUE_DARK = '#1D4ED8';
+export const BG = '#F8FAFC';
+export const SURFACE = '#FFFFFF';
+export const CARD = SURFACE;
+export const CARD2 = BG;
+export const BORDER = '#E2E8F0';
+export const TEXT = NAVY;
+export const MUTED = '#475569';
+export const DANGER = '#DC2626';
+// Compatibility for existing flow components; new components use semantic names.
+export const GOLD = GREEN;
+export const GOLD_DIM = GREEN_DARK;
 export const BPMN_COLORS = {
-  start: { fill: "#dcfce7", stroke: "#22c55e" },
-  end: { fill: "#fee2e2", stroke: "#ef4444" },
-  task: { fill: "#eff6ff", stroke: "#3b82f6" },
-  gateway: { fill: "#fef9c3", stroke: "#eab308" },
-  document: { fill: "#f8fafc", stroke: "#94a3b8" }
+  start: { fill: '#E6FAF1', stroke: GREEN_DARK },
+  end: { fill: '#FEF2F2', stroke: DANGER },
+  task: { fill: '#EFF6FF', stroke: BLUE },
+  gateway: { fill: '#FFFBEB', stroke: '#A16207' },
+  document: { fill: BG, stroke: '#64748B' },
 };

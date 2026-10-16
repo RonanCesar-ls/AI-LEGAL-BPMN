@@ -4,9 +4,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
 import { ArrowLeft } from 'lucide-react';
+import { GREEN as G, BLUE as I, GREEN_DARK as C, DANGER as D, BLUE_DARK as B, TEXT as T, MUTED as M, SURFACE as SURF, BORDER as BRD } from '../../styles/theme';
 
-const G = "#d4a017", I = "#6366f1", C = "#22c55e", W = "#eab308", D = "#ef4444";
-const B = "#3b82f6", T = "#1e293b", M = "#64748b", SURF = "#ffffff", BRD = "#e2e8f0";
+const W = '#A16207';
 
 const DATA = {
   dia: {
@@ -131,9 +131,9 @@ const DATA = {
 const IS = {
   danger:  { bg: "#fef2f2", border: "#fecaca", dot: D,  text: "#dc2626" },
   warning: { bg: "#fffbeb", border: "#fde68a", dot: W,  text: "#b45309" },
-  accent:  { bg: "#eef2ff", border: "#c7d2fe", dot: I,  text: "#4338ca" },
+  accent:  { bg: "#EFF6FF", border: "#BFDBFE", dot: I,  text: "#1D4ED8" },
   success: { bg: "#f0fdf4", border: "#bbf7d0", dot: C,  text: "#16a34a" },
-  gold:    { bg: "#fffbeb", border: "#fde68a", dot: G,  text: "#92400e" },
+  gold:    { bg: "#E6FAF1", border: "#A6E8CB", dot: G, text: C },
 };
 
 const card = { background: SURF, border: `0.5px solid ${BRD}`, borderRadius: 12, padding: "14px 16px" };
@@ -237,7 +237,7 @@ export function PainelGestor({ user, onVoltar }) {
     <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", color: T, padding: "2px" }}> 
 
       <div style={{ marginBottom: 16 }}>
-        <button onClick={onVoltar} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 13, fontWeight: 600, padding: 0 }}>
+        <button onClick={onVoltar} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 13, fontWeight: 600, padding: 0 }}>
           <ArrowLeft size={14} /> Voltar
         </button>
       </div>

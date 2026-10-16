@@ -68,8 +68,8 @@ export const getLayoutedElements = (nodes, edges) => {
     source: e.source, target: e.target,
     label: e.label || "",
     type: 'smoothstep',
-    markerEnd: { type: 'arrowclosed', color: "#64748b" },
-    style: { stroke: "#64748b", strokeWidth: 2 },
+    markerEnd: { type: 'arrowclosed', color: "#475569" },
+    style: { stroke: "#475569", strokeWidth: 2 },
     labelStyle: { fill: "#b45309", fontWeight: 700, fontSize: 11 },
     labelBgStyle: { fill: "#ffffff" },
   }));

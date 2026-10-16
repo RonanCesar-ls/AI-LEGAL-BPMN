@@ -1,9 +1,6 @@
+import { BORDER, MUTED, TEXT } from '../../../styles/theme';
 import { useMemo } from 'react';
 import { TrendingUp, AlertTriangle, CheckCircle, Clock, Activity } from 'lucide-react';
-
-const BORDER = '#e2e8f0';
-const MUTED  = '#64748b';
-const TEXT   = '#1e293b';
 
 const STATUS_CONFIG = {
   todo:        { label: 'A Fazer',      color: '#94a3b8', bg: '#f1f5f9' },
@@ -83,7 +80,7 @@ function CollaboratorBar({ collab }) {
         <div style={{
           height: '100%', borderRadius: 3,
           width: `${pct}%`,
-          background: collab.blocked > 0 ? '#ef4444' : pct === 100 ? '#22c55e' : '#6366f1',
+          background: collab.blocked > 0 ? '#ef4444' : pct === 100 ? '#22c55e' : '#2563EB',
           transition: 'width .6s ease',
         }} />
       </div>
@@ -151,8 +148,8 @@ export function Dashboard({ metrics, loading, lastUpdate }) {
       {byCollaborator.length > 0 && (
         <div style={{ background: '#ffffff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-            <TrendingUp size={14} color="#6366f1" />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <TrendingUp size={14} color="#2563EB" />
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1 }}>
               Progresso por colaborador
             </span>
           </div>
@@ -163,17 +160,17 @@ export function Dashboard({ metrics, loading, lastUpdate }) {
       {recentActivity?.length > 0 && (
         <div style={{ background: '#ffffff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-            <Activity size={14} color="#6366f1" />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <Activity size={14} color="#2563EB" />
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1 }}>
               Atividade recente
             </span>
           </div>
           {recentActivity.map(event => (
             <div key={event.id} style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'flex-start' }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#6366f1', marginTop: 5, flexShrink: 0 }} />
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2563EB', marginTop: 5, flexShrink: 0 }} />
               <div>
                 <p style={{ fontSize: 12, color: TEXT, lineHeight: 1.4 }}>
-                  <span style={{ fontWeight: 700, color: '#6366f1' }}>{event.description}</span>
+                  <span style={{ fontWeight: 700, color: '#2563EB' }}>{event.description}</span>
                   {' '}{ACTION_LABELS[event.action] ?? event.action}{' '}
                   {event.taskTitle && <span style={{ fontStyle: 'italic' }}>"{event.taskTitle}"</span>}
                   {event.toStatus && (

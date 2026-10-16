@@ -1,97 +1,71 @@
-import { FlowChartEditor } from "../editor/components/FlowChartEditor";
-import { Upload, GitBranch, Cpu, Shield, BarChart2, Mail, Zap, ArrowRight } from "lucide-react";
-import { Btn } from "../../shared/components/Btn";
-import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
+import { ArrowRight, ArrowUpRight, Check, CheckCheck, ChevronRight, Circle, FileText, GitBranch, LayoutDashboard, ListTodo, Mail, MousePointer2, ScanText, ShieldCheck, Sparkles, Upload, Users } from 'lucide-react';
+import { Brand } from '../../shared/components/Brand';
+import './Landing.css';
 
-export const Landing = ({ onLogin, onCadastro }) => {
-  const features = [
-    { icon: Upload, title: "Importação RCC", desc: "Carregue arquivos RCC e o sistema processa automaticamente as entidades jurídicas." },
-    { icon: GitBranch, title: "Fluxograma com IA", desc: "A LLM analisa e gera diagramas BPMN interativos e personalizados." },
-    { icon: Cpu, title: "Correlação de Entidades", desc: "Identificação automática de partes, prazos e interdependências processuais." },
-    { icon: Shield, title: "Integração com Advocacia", desc: "Compatível com os principais softwares jurídicos do mercado." },
-    { icon: BarChart2, title: "Gestão de Projetos", desc: "Organize e gerencie múltiplos processos em um único ambiente." },
-    { icon: Mail, title: "Integração Gmail", desc: "Conecte sua caixa de entrada e automatize o fluxo documental." },
-  ];
+const features = [
+  { icon: Upload, label: '01 / DOCUMENTOS', title: 'Do arquivo ao processo.', desc: 'Importe seus documentos e arquivos RCC para organizar as informações que dão início ao trabalho.' },
+  { icon: GitBranch, label: '02 / INTELIGÊNCIA ARTIFICIAL', title: 'Fluxos que fazem sentido.', desc: 'Transforme informações em diagramas BPMN. Visualize etapas, responsáveis e conexões com apoio da IA.' },
+  { icon: Users, label: '03 / ENTIDADES', title: 'Cada detalhe conectado.', desc: 'Identifique partes, prazos e interdependências para entender o processo por inteiro.' },
+  { icon: ShieldCheck, label: '04 / ROTINA JURÍDICA', title: 'Feito para o seu trabalho.', desc: 'Reúna a análise de documentos e o mapeamento de processos em um ambiente pensado para a operação jurídica.' },
+  { icon: LayoutDashboard, label: '05 / GESTÃO', title: 'Visibilidade para decidir.', desc: 'Organize projetos, acompanhe tarefas no Diário de Bordo e veja os indicadores no Painel do Gestor.' },
+  { icon: Mail, label: '06 / FLUXO DOCUMENTAL', title: 'Informação em movimento.', desc: 'Mantenha documentos e informações do seu fluxo de trabalho organizados em um só lugar.' },
+];
 
-  const previewNodes = [
-    { id: '1', type: "start", position: { x: 60, y: 84 }, data: { label: "Entrada RCC" } },
-    { id: '2', type: "task", position: { x: 200, y: 60 }, data: { label: "Análise Documental", actor: "Secretaria" } },
-    { id: '3', type: "gateway", position: { x: 420, y: 60 }, data: { label: "Despacho?" } }
-  ];
-  
-  const previewEdges = [
-    { id: 'e1-2', source: '1', target: '2', type: 'smoothstep', markerEnd: { type: 'arrowclosed', color: "#64748b" }, style: { stroke: "#64748b", strokeWidth: 2 } }, 
-    { id: 'e2-3', source: '2', target: '3', type: 'smoothstep', markerEnd: { type: 'arrowclosed', color: "#64748b" }, style: { stroke: "#64748b", strokeWidth: 2 } }
-  ];
-
+function ProductPreview() {
   return (
-    <div style={{ background: BG, minHeight: "100vh", color: TEXT, fontFamily: "'DM Sans', sans-serif" }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 60px", borderBottom: `1px solid ${BORDER}`, background: SURFACE, position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <img src="/pbmapp-logo.png" alt="PBMapp" style={{ display: 'block', width: 150, height: 'auto' }} />
+    <div className="product-preview" aria-label="Prévia ilustrativa de um processo organizado no PBMapp">
+      <div className="preview-topbar"><Brand /><span className="preview-environment"><span className="status-dot" /> Ambiente de trabalho</span><div className="preview-avatar">JS</div></div>
+      <div className="preview-workspace">
+        <aside className="preview-sidebar" aria-hidden="true">
+          <span className="preview-sidebar-label">WORKSPACE</span>
+          <div className="preview-menu-active"><GitBranch size={15} /> Editor BPMN</div>
+          <div><ListTodo size={15} /> Diário de Bordo</div>
+          <div><LayoutDashboard size={15} /> Painel do Gestor</div>
+          <span className="preview-sidebar-label preview-project-label">SEUS PROJETOS</span>
+          <div><span className="status-dot" /> Processo jurídico</div>
+          <div><Circle size={8} /> Novo projeto</div>
+        </aside>
+        <div className="preview-main">
+          <div className="preview-breadcrumb">Projetos <ChevronRight size={12} /><strong>Processo jurídico</strong><span className="preview-saved"><CheckCheck size={12} /> Salvo</span></div>
+          <div className="preview-heading"><div><span>MAPEAMENTO DE PROCESSOS</span><h3>Um caminho claro para cada etapa.</h3></div><span className="preview-ai"><Sparkles size={12} /> IA</span></div>
+          <div className="preview-canvas"><div className="flow-track">
+            <div className="flow-start"><span><Check size={15} /></span><small>Início</small></div><div className="flow-connector" />
+            <div className="flow-task"><span className="flow-task-icon"><FileText size={16} /></span><strong>Análise documental</strong><small>Secretaria</small><span className="flow-tag"><Check size={10} /> Concluído</span></div><div className="flow-connector" />
+            <div className="flow-decision"><div><GitBranch size={19} /></div><small>Aprovação</small></div><div className="flow-connector" />
+            <div className="flow-task flow-task--next"><span className="flow-task-icon"><ShieldCheck size={16} /></span><strong>Revisão jurídica</strong><small>Responsável jurídico</small><span className="flow-tag flow-tag--blue">Em andamento</span></div>
+          </div><div className="canvas-caption"><MousePointer2 size={12} /> Clareza para acompanhar. Controle para avançar.</div><span className="preview-zoom">− <span>100%</span> +</span></div>
+          <div className="preview-bottom"><span><span className="status-dot" /> Fluxo conectado</span><span>Prévia ilustrativa · Padrão BPMN</span></div>
         </div>
-        <nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={onLogin} style={{ background: "none", border: `1px solid ${BORDER}`, color: TEXT, padding: "8px 18px", borderRadius: 8, fontFamily: "inherit", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Login</button>
-          <Btn onClick={onCadastro} size="sm">Cadastro</Btn>
-          <button style={{ background: "none", border: "none", color: MUTED, padding: "8px 16px", fontFamily: "inherit", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Contate-Nos</button>
-        </nav>
-      </header>
-
-      <section style={{ padding: "100px 60px 80px", maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }}>
-        <div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${GOLD}15`, border: `1px solid ${GOLD}33`, borderRadius: 100, padding: "5px 14px", marginBottom: 24 }}>
-            <Zap size={12} color={GOLD_DIM} />
-            <span style={{ color: GOLD_DIM, fontSize: 12, fontWeight: 700 }}>Plataforma Jurídica com IA Generativa</span>
-          </div>
-          <h1 style={{ fontSize: 52, fontWeight: 800, lineHeight: 1.1, marginBottom: 20, fontFamily: "'Playfair Display', serif" }}>
-            Automatize seu<br />
-            <span style={{ color: GOLD }}>escritório jurídico</span>
-          </h1>
-          <p style={{ color: MUTED, fontSize: 16, lineHeight: 1.7, marginBottom: 36, maxWidth: 440 }}>
-            Importe arquivos RCC, mapeie gargalos operacionais e gere fluxogramas precisos (padrão BPMN) com o poder da Inteligência Artificial Generativa.
-          </p>
-          <div style={{ display: "flex", gap: 12 }}>
-            <Btn onClick={onCadastro} size="lg"><Zap size={16} />Começar Grátis</Btn>
-            <Btn onClick={onLogin} variant="outline" size="lg">Ver Demo</Btn>
-          </div>
-        </div>
-        
-        <div style={{ background: CARD, borderRadius: 16, border: `1px solid ${BORDER}`, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.05)", height: 400, display: "flex", flexDirection: "column" }}>
-          <div style={{ background: CARD2, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8, borderBottom: `1px solid ${BORDER}` }}>
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: DANGER }} />
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: GOLD }} />
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#4ecdc4" }} />
-            <span style={{ color: MUTED, fontSize: 12, marginLeft: 8, fontWeight: 500 }}>PBMapp — Processo Penal.rcc</span>
-          </div>
-          <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-            <FlowChartEditor isReadOnly={true} nodes={previewNodes} edges={previewEdges} />
-          </div>
-        </div>
-      </section>
-
-      <section style={{ background: SURFACE, padding: "80px 60px", borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", fontSize: 36, fontWeight: 800, marginBottom: 8, fontFamily: "'Playfair Display', serif" }}>Tudo que seu escritório precisa</h2>
-          <p style={{ textAlign: "center", color: MUTED, marginBottom: 52 }}>Uma plataforma completa, do arquivo RCC ao fluxo otimizado.</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-            {features.map(({ icon: Icon, title, desc }) => (
-              <div key={title} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 24, boxShadow: "0 4px 6px rgba(0,0,0,0.02)" }}>
-                <div style={{ background: `${GOLD}18`, borderRadius: 8, padding: 10, display: "inline-flex", marginBottom: 16 }}>
-                  <Icon size={18} color={GOLD_DIM} />
-                </div>
-                <h3 style={{ fontWeight: 700, marginBottom: 8, fontSize: 15 }}>{title}</h3>
-                <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.6 }}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section style={{ padding: "80px 60px", textAlign: "center", background: BG }}>
-        <h2 style={{ fontSize: 40, fontWeight: 800, fontFamily: "'Playfair Display', serif", marginBottom: 16 }}>Pronto para começar?</h2>
-        <p style={{ color: MUTED, marginBottom: 32 }}>Crie sua conta gratuitamente e transforme seu fluxo jurídico hoje.</p>
-        <Btn onClick={onCadastro} size="lg"><ArrowRight size={16} />Criar conta grátis</Btn>
-      </section>
+      </div>
     </div>
   );
-};
+}
+
+export const Landing = ({ onLogin, onCadastro }) => (
+  <div className="landing">
+    <a className="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <header className="landing-header"><div className="landing-container landing-header-inner">
+      <a className="brand-link" href="#inicio" aria-label="PBMapp — início"><Brand /></a>
+      <nav className="landing-nav" aria-label="Navegação principal"><a href="#recursos">Recursos</a><a href="#como-funciona">Como funciona</a></nav>
+      <div className="landing-header-actions"><button className="text-button" onClick={onLogin}>Acessar conta <ArrowUpRight size={14} /></button><button className="site-button site-button--small" onClick={onCadastro}>Começar agora <ArrowRight size={15} /></button></div>
+    </div></header>
+    <main id="conteudo">
+      <section className="landing-hero landing-container" id="inicio"><div className="hero-copy">
+        <div className="eyebrow"><span className="status-dot" /> INTELIGÊNCIA QUE CONECTA PROCESSOS</div>
+        <h1>Clareza em cada etapa.<br /><span>Eficiência em todo o fluxo.</span></h1>
+        <p>Transforme documentos em processos visuais com inteligência artificial. Organize sua operação jurídica e dê à sua equipe uma visão clara do próximo passo.</p>
+        <div className="hero-actions"><button className="site-button" onClick={onCadastro}>Criar minha conta <ArrowRight size={17} /></button><a className="site-button site-button--secondary" href="#plataforma">Conhecer a plataforma <ArrowUpRight size={17} /></a></div>
+        <div className="hero-notes"><span><Check size={14} /> Fluxogramas BPMN</span><span><Check size={14} /> IA generativa</span><span><Check size={14} /> Gestão integrada</span></div>
+      </div><div className="hero-preview" id="plataforma"><div className="preview-label"><span>DA INFORMAÇÃO À AÇÃO</span><span>Uma visão. Todo o processo.</span></div><ProductPreview /><div className="preview-footnote"><span className="preview-footnote-line" /> Menos complexidade. Mais fluidez.</div></div></section>
+      <div className="capabilities-strip"><div className="landing-container"><span>SEU TRABALHO, CONECTADO.</span><span><ScanText size={19} /> Documentos</span><ChevronRight size={14} /><span><GitBranch size={19} /> Processos</span><ChevronRight size={14} /><span><Users size={19} /> Pessoas</span><ChevronRight size={14} /><span><LayoutDashboard size={19} /> Gestão</span></div></div>
+      <section className="features-section landing-container" id="recursos"><div className="section-heading"><div><span className="section-kicker">DO DETALHE À VISÃO COMPLETA</span><h2>Uma operação mais organizada.<br />Uma equipe mais conectada.</h2></div><p>Da primeira análise ao acompanhamento diário, reúna o que importa para fazer seu trabalho fluir.</p></div><div className="feature-grid">{features.map(({ icon: Icon, label, title, desc }) => <article className="feature-card" key={title}><div className="feature-icon"><Icon size={22} strokeWidth={1.6} /></div><span className="feature-label">{label}</span><h3>{title}</h3><p>{desc}</p></article>)}</div></section>
+      <section className="how-section" id="como-funciona"><div className="landing-container"><div className="section-heading"><div><span className="section-kicker">SIMPLES EM CADA PASSO</span><h2>Do documento ao fluxo.<br />Do fluxo à ação.</h2></div><p>Um caminho mais claro para transformar informação em trabalho organizado.</p></div><div className="steps-grid">{[
+        { number: '01', icon: Upload, title: 'Traga seus documentos', desc: 'Crie um projeto e importe os arquivos que fazem parte do seu processo.' },
+        { number: '02', icon: Sparkles, title: 'Deixe a IA conectar', desc: 'Gere o fluxograma e revise as etapas, conexões e responsabilidades.' },
+        { number: '03', icon: CheckCheck, title: 'Acompanhe a execução', desc: 'Transforme o fluxo em tarefas e acompanhe sua equipe em um só lugar.' },
+      ].map(({ number, icon: Icon, title, desc }) => <article className="step" key={number}><div className="step-top"><span>{number}</span><Icon size={21} /></div><h3>{title}</h3><p>{desc}</p></article>)}</div></div></section>
+      <section className="cta-section landing-container"><div className="cta-copy"><span className="section-kicker">SEU PRÓXIMO PASSO COMEÇA AQUI</span><h2>Mais clareza para sua equipe.<br /><span>Mais movimento para sua operação.</span></h2><p>Conheça uma nova forma de visualizar e gerenciar seus processos.</p><button className="site-button" onClick={onCadastro}>Começar agora <ArrowRight size={17} /></button></div><div className="cta-art" aria-hidden="true"><div /><div /><div /><div><Check size={42} strokeWidth={1.5} /></div></div></section>
+    </main>
+    <footer className="landing-footer"><div className="landing-container"><Brand /><p>Inteligência para conectar. Clareza para avançar.</p><span>© {new Date().getFullYear()} PBMapp</span></div></footer>
+  </div>
+);

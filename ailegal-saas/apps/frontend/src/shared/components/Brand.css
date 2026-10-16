@@ -1,0 +1,5 @@
+.brand { display: inline-flex; align-items: center; gap: 8px; color: var(--navy); font-size: 25px; font-weight: 800; letter-spacing: -1.1px; white-space: nowrap; line-height: 1; }
+.brand img { object-fit: contain; flex-shrink: 0; }
+.brand-suffix { font-weight: 650; }
+.brand-dot { color: var(--green); }
+.brand--inverse { color: white; }

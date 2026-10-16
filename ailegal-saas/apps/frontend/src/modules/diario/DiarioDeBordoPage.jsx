@@ -1,3 +1,4 @@
+import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD_DIM } from '../../styles/theme';
 import { useState } from 'react';
 import { ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { useDateNavigation } from './hooks/useDateNavigation';
@@ -10,13 +11,6 @@ import { InsightPanel } from './components/InsightPanel';
 import { Dashboard }     from './components/Dashboard';
 import { tasksApi } from '../../shared/services/tasksApi';
 import { AuditLog } from './components/AuditLog';
-
-const BG       = '#f4f5f7';
-const SURFACE  = '#ffffff';
-const BORDER   = '#e2e8f0';
-const TEXT     = '#1e293b';
-const MUTED    = '#64748b';
-const GOLD_DIM = '#b88a12';
 
 export function DiarioDeBordoPage({ user, onVoltar, diarioContext, onContextChange }) {
   const nav = useDateNavigation();

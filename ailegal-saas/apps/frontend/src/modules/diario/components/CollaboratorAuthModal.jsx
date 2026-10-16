@@ -1,12 +1,7 @@
+import { BORDER, TEXT, MUTED, DANGER, GOLD } from '../../../styles/theme';
 import { useState } from 'react';
 import { Lock, Loader, X, User } from 'lucide-react';
 import { authApi } from '../../../shared/services/authApi';
-
-const BORDER  = '#e2e8f0';
-const TEXT    = '#1e293b';
-const MUTED   = '#64748b';
-const DANGER  = '#ef4444';
-const GOLD    = '#d4a017';
 
 export function CollaboratorAuthModal({ collaborator, onConfirm, onCancel }) {
   const [password, setPassword] = useState('');
@@ -54,7 +49,7 @@ export function CollaboratorAuthModal({ collaborator, onConfirm, onCancel }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${GOLD}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <User size={16} color="#b88a12" />
+              <User size={16} color="#007A49" />
             </div>
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{collaborator.name}</p>
@@ -130,8 +125,8 @@ export function CollaboratorAuthModal({ collaborator, onConfirm, onCancel }) {
             disabled={loading}
             style={{
               flex: 1, padding: '10px', borderRadius: 8, border: 'none',
-              background: loading ? '#b88a12' : GOLD,
-              color: '#ffffff', cursor: loading ? 'not-allowed' : 'pointer',
+              background: loading ? '#007A49' : GOLD,
+              color: loading ? '#ffffff' : TEXT, cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: 13, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}

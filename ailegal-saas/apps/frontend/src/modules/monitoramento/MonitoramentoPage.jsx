@@ -1,15 +1,9 @@
+import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD } from '../../styles/theme';
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Monitor, Clock, Wifi, WifiOff, RefreshCw, Users } from 'lucide-react';
 import { trackingApi } from '../../shared/services/trackingApi';
 import { usersApi }    from '../../shared/services/usersApi';
 import { getLocalISODate } from '../../shared/utils/date';
-
-const BG      = '#f4f5f7';
-const SURFACE = '#ffffff';
-const BORDER  = '#e2e8f0';
-const TEXT    = '#1e293b';
-const MUTED   = '#64748b';
-const GOLD    = '#d4a017';
 
 const DOMAIN_CONFIG = {
   whatsapp:  { label: 'WhatsApp',   color: '#25d366', bg: '#f0fdf4', icon: '💬' },
@@ -41,7 +35,7 @@ function BarChart({ data, maxSeconds }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {data.map(item => {
-        const cfg = DOMAIN_CONFIG[item.domain] ?? { label: item.domain, color: '#6366f1', bg: '#ede9fe', icon: '🌐' };
+        const cfg = DOMAIN_CONFIG[item.domain] ?? { label: item.domain, color: '#2563EB', bg: '#EFF6FF', icon: '🌐' };
         const pct = maxSeconds > 0 ? (item.total_seconds / maxSeconds) * 100 : 0;
 
         return (
@@ -151,7 +145,7 @@ export function MonitoramentoPage({ user, onVoltar }) {
             <ArrowLeft size={16} /> Voltar
           </button>
           <div style={{ width: 1, height: 20, background: BORDER }} />
-          <Monitor size={18} color="#6366f1" />
+          <Monitor size={18} color="#2563EB" />
           <span style={{ fontSize: 16, fontWeight: 700, color: TEXT }}>Monitoramento de Produtividade</span>
         </div>
 
@@ -202,8 +196,8 @@ export function MonitoramentoPage({ user, onVoltar }) {
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 13, fontWeight: 600,
-              color: view === tab.id ? '#6366f1' : MUTED,
-              borderBottom: view === tab.id ? '2px solid #6366f1' : '2px solid transparent',
+              color: view === tab.id ? '#2563EB' : MUTED,
+              borderBottom: view === tab.id ? '2px solid #2563EB' : '2px solid transparent',
             }}
           >
             {tab.icon} {tab.label}
@@ -233,7 +227,7 @@ export function MonitoramentoPage({ user, onVoltar }) {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
-              <MetricCard icon="⏱"  label="Total hoje"   value={formatTime(totalSeconds)}    color="#6366f1" />
+              <MetricCard icon="⏱"  label="Total hoje"   value={formatTime(totalSeconds)}    color="#2563EB" />
               <MetricCard icon="💬" label="WhatsApp"     value={formatTime(whatsappSeconds)} color="#25d366" bg="#f0fdf4" />
               <MetricCard icon="📧" label="E-mail"       value={formatTime(emailSeconds)}    color="#4285f4" bg="#eff6ff" />
               <MetricCard icon="📱" label="Redes Sociais" value={formatTime(socialSeconds)}  color="#e1306c" bg="#fdf2f8" />
@@ -272,7 +266,7 @@ export function MonitoramentoPage({ user, onVoltar }) {
                 </div>
 
                 {teamData.map((row, i) => {
-                  const cfg = DOMAIN_CONFIG[row.domain] ?? { label: row.domain, color: '#6366f1', icon: '🌐' };
+                  const cfg = DOMAIN_CONFIG[row.domain] ?? { label: row.domain, color: '#2563EB', icon: '🌐' };
                   return (
                     <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 0, padding: '12px 20px', borderBottom: i < teamData.length - 1 ? `1px solid ${BORDER}` : 'none', alignItems: 'center' }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>{row.user_name}</span>

@@ -15,7 +15,8 @@ export const GoogleSignInButton = ({ onCredential, disabled, onLoadError }) => {
       elementRef.current.replaceChildren();
       window.google.accounts.id.renderButton(elementRef.current, {
         type: 'standard', theme: 'outline', size: 'large', text: 'continue_with',
-        shape: 'rectangular', logo_alignment: 'left', width: 324, locale: 'pt-BR',
+        shape: 'rectangular', logo_alignment: 'left',
+        width: Math.max(200, Math.min(390, elementRef.current.clientWidth || 324)), locale: 'pt-BR',
       });
     };
 

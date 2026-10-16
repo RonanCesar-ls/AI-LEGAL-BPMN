@@ -1,9 +1,7 @@
+import { BORDER, MUTED } from '../../../styles/theme';
 import { useState, useEffect } from 'react';
 import { Brain, AlertTriangle, CheckCircle, Info, Loader, RefreshCw, CalendarCheck } from 'lucide-react';
 import { tasksApi } from '../../../shared/services/tasksApi';
-
-const BORDER = '#e2e8f0';
-const MUTED  = '#64748b';
 
 const RISK_CONFIG = {
   high:   { label: 'Risco Alto',    color: '#dc2626', bg: '#fef2f2', border: '#fecaca', icon: AlertTriangle },
@@ -41,8 +39,8 @@ export function InsightPanel({ userId, taskDate, onReallocate }) {
     return (
       <div style={{ background: '#ffffff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 20, marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <Brain size={16} color="#6366f1" />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <Brain size={16} color="#2563EB" />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1 }}>
             Insight da IA
           </span>
         </div>
@@ -54,7 +52,7 @@ export function InsightPanel({ userId, taskDate, onReallocate }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '8px 14px', borderRadius: 8, border: 'none',
-            background: '#6366f1', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+            background: '#2563EB', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700,
           }}
         >
           <Brain size={13} /> Analisar agora
@@ -66,7 +64,7 @@ export function InsightPanel({ userId, taskDate, onReallocate }) {
   if (loading) {
     return (
       <div style={{ background: '#ffffff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: 20, marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6366f1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#2563EB' }}>
           <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
           <span style={{ fontSize: 13, fontWeight: 600 }}>IA analisando a carga do dia...</span>
         </div>
@@ -87,8 +85,8 @@ export function InsightPanel({ userId, taskDate, onReallocate }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Brain size={14} color="#6366f1" />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <Brain size={14} color="#2563EB" />
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 1 }}>
               Insight da IA
             </span>
           </div>
@@ -98,14 +96,14 @@ export function InsightPanel({ userId, taskDate, onReallocate }) {
           </div>
         </div>
 
-        <p style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.6, marginBottom: 12 }}>
+        <p style={{ fontSize: 13, color: '#111E38', lineHeight: 1.6, marginBottom: 12 }}>
           {data.insight}
         </p>
 
         {/* Stats rápidos */}
         <div style={{ display: 'flex', gap: 8 }}>
           {[
-            { label: 'Total', value: data.stats.totalToday, color: '#64748b' },
+            { label: 'Total', value: data.stats.totalToday, color: '#475569' },
             { label: 'Concluídas', value: data.stats.doneToday, color: '#16a34a' },
             { label: 'Pendentes', value: data.stats.pendingToday, color: '#b45309' },
             { label: 'Impedidas', value: data.stats.blockedToday, color: '#dc2626' },
@@ -126,7 +124,7 @@ export function InsightPanel({ userId, taskDate, onReallocate }) {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
           <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#1e293b', marginBottom: 2 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#111E38', marginBottom: 2 }}>
               💡 Sugestão: realocar {data.tasksToReallocate.length} tarefa(s) para amanhã
             </p>
             <p style={{ fontSize: 11, color: MUTED }}>
@@ -145,7 +143,7 @@ export function InsightPanel({ userId, taskDate, onReallocate }) {
                 setAccepted(true);
                 onReallocate(data.tasksToReallocate);
               }}
-              style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: '#6366f1', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}
+              style={{ padding: '7px 12px', borderRadius: 8, border: 'none', background: '#2563EB', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}
             >
               <CalendarCheck size={12} style={{ marginRight: 4 }} />
               Aceitar

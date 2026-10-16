@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 const STATUS_OPTIONS = [
-  { value: 'todo',        label: '⚪  A Fazer',       color: '#64748b' },
+  { value: 'todo',        label: '⚪  A Fazer',       color: '#475569' },
   { value: 'in_progress', label: '🟡  Em Andamento',  color: '#eab308' },
   { value: 'done',        label: '🟢  Concluído',     color: '#22c55e' },
   { value: 'blocked',     label: '🔴  Impedimento',   color: '#ef4444' },
@@ -32,14 +32,14 @@ export const ContextMenu = ({ x, y, type, onEdit, onDelete, onStatusChange, onTi
       }}
       onClick={e => e.stopPropagation()}
     >
-      <button onClick={onEdit}   style={btnStyle('#1e293b')}
+      <button onClick={onEdit}   style={btnStyle('#111E38')}
         onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
         onMouseLeave={e => e.currentTarget.style.background = 'none'}>
         ✏️  Editar texto
       </button>
 
       {type === 'node' && (
-        <button onClick={onTimeline} style={btnStyle('#6366f1')}
+        <button onClick={onTimeline} style={btnStyle('#2563EB')}
           onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
           onMouseLeave={e => e.currentTarget.style.background = 'none'}>
           📋  Ver Timeline

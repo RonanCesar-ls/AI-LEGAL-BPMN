@@ -6,7 +6,7 @@ import { FlowChartEditor } from "./components/FlowChartEditor";
 import { GlobalTimeline } from './components/GlobalTimeline';
 import { Badge } from "../../shared/components/Badge";
 import { Btn } from "../../shared/components/Btn";
-import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, DANGER, CARD, CARD2 } from "../../styles/theme";
+import { BG, SURFACE, BORDER, TEXT, MUTED, GOLD, GOLD_DIM, BLUE, DANGER, CARD, CARD2 } from "../../styles/theme";
 import { WalkthroughPresentation } from './components/WalkthroughPresentation';
 import { tasksApi } from '../../shared/services/tasksApi'; 
 import { getLocalISODate } from '../../shared/utils/date';
@@ -158,8 +158,8 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
               style={{ 
                 display: "flex", alignItems: "center", gap: 12, padding: "12px", 
                 borderRadius: 8, border: "none", cursor: "pointer", 
-                background: view === item.id ? `${GOLD}15` : "transparent", 
-                color: view === item.id ? GOLD_DIM : MUTED, 
+                background: view === item.id ? `${BLUE}0D` : "transparent",
+                color: view === item.id ? BLUE : MUTED,
                 fontWeight: view === item.id ? 700 : 500, 
                 whiteSpace: "nowrap" 
               }}
@@ -194,7 +194,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
               <span>{activeProject?.name || 'Nenhum projeto'}</span>
               {generated && <Badge>IA Gerou</Badge>}
               {syncing && (
-                <span style={{ fontSize: 11, color: '#6366f1', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: 11, color: '#2563EB', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Loader size={10} style={{ animation: 'spin 1s linear infinite' }} />
                   Salvando...
                 </span>
@@ -298,7 +298,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
                 <button
                   onClick={() => fileInputRef.current.click()}
                   style={{ width: "100%", padding: "10px", background: "#f8fafc", border: `2px dashed ${BORDER}`, borderRadius: 8, color: MUTED, fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.background = "#fffbeb"; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.background = "#E6FAF1"; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.background = "#f8fafc"; }}
                 >
                   <Upload size={16} /> Importar Arquivos RCC
@@ -337,7 +337,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
                     const cfg = {
                       waiting:    { icon: '⏳', color: '#94a3b8' },
                       extracting: { icon: '📄', color: '#eab308' },
-                      generating: { icon: '⚡', color: '#6366f1' },
+                      generating: { icon: '⚡', color: '#2563EB' },
                       done:       { icon: '✅', color: '#22c55e' },
                       error:      { icon: '❌', color: '#ef4444' },
                     }[item.status] ?? { icon: '⏳', color: '#94a3b8' };
@@ -345,7 +345,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
                     return (
                       <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 6, marginBottom: 4, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                         <span style={{ fontSize: 14 }}>{cfg.icon}</span>
-                        <span style={{ fontSize: 11, color: '#1e293b', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 11, color: '#111E38', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {item.fileName}
                         </span>
                         <span style={{ fontSize: 10, color: cfg.color, fontWeight: 700, flexShrink: 0 }}>
@@ -360,8 +360,8 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
               <p style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, marginTop: 'auto' }}>
                 Log de Processamento
               </p>
-              <div style={{ background: "#1e293b", borderRadius: 8, padding: 10, minHeight: 100, fontFamily: "monospace", fontSize: 11, lineHeight: 1.8, flexShrink: 0, overflowY: 'auto', maxHeight: 200 }}>
-                {!activeProject?.aiLog?.length && <span style={{ color: MUTED }}>Aguardando prompt...</span>}
+              <div style={{ background: "#111E38", borderRadius: 8, padding: 10, minHeight: 100, fontFamily: "monospace", fontSize: 11, lineHeight: 1.8, flexShrink: 0, overflowY: 'auto', maxHeight: 200 }}>
+                {!activeProject?.aiLog?.length && <span style={{ color: '#94A3B8' }}>Aguardando prompt...</span>}
                 {activeProject?.aiLog?.map((l, i) => (
                   <div key={i} style={{ color: l.startsWith("✓") || l.startsWith("✅") ? "#4ecdc4" : l.startsWith("❌") ? "#ef4444" : GOLD }}>
                     {l}
@@ -459,7 +459,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
 
         {view === "conta" && (
           <div style={{ padding: 40, overflow: "auto", background: BG, flex: 1 }}>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, marginBottom: 24 }}>
+            <h2 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 26, fontWeight: 700, marginBottom: 24 }}>
               Minha Conta
             </h2>
             <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 28, display: "flex", alignItems: "center", gap: 20, maxWidth: 600 }}>
@@ -525,10 +525,10 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
               onClick={e => e.stopPropagation()}>
 
               <div style={{ marginBottom: 24 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111E38', marginBottom: 8 }}>
                   📁 {uploadChoiceModal.files.length} arquivos selecionados
                 </h2>
-                <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6 }}>
+                <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.6 }}>
                   Como você quer processar esses arquivos?
                 </p>
               </div>
@@ -546,23 +546,23 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
                 <button
                   onClick={() => handleCreateProjectFromFiles(uploadChoiceModal.files, 'separate')}
                   style={{ padding: '16px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', border: '2px solid #e2e8f0', background: '#ffffff' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#d4a017'; e.currentTarget.style.background = '#fffbeb'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#00C875'; e.currentTarget.style.background = '#E6FAF1'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
                 >
                   <div style={{ fontSize: 24, marginBottom: 8 }}>🗂️</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>Abas separadas</div>
-                  <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5 }}>Cada arquivo gera seu próprio fluxograma em uma aba independente.</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#111E38', marginBottom: 4 }}>Abas separadas</div>
+                  <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.5 }}>Cada arquivo gera seu próprio fluxograma em uma aba independente.</div>
                 </button>
 
                 <button
                   onClick={() => handleCreateProjectFromFiles(uploadChoiceModal.files, 'merged')}
                   style={{ padding: '16px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', border: '2px solid #e2e8f0', background: '#ffffff' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.background = '#f0f0ff'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.background = '#EFF6FF'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
                 >
                   <div style={{ fontSize: 24, marginBottom: 8 }}>🔗</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>Mesma aba</div>
-                  <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5 }}>A IA analisa todos juntos e conecta os processos que tiverem relação.</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#111E38', marginBottom: 4 }}>Mesma aba</div>
+                  <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.5 }}>A IA analisa todos juntos e conecta os processos que tiverem relação.</div>
                 </button>
               </div>
 

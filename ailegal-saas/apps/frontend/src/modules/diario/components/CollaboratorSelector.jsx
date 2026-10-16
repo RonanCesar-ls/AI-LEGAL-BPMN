@@ -1,12 +1,8 @@
+import { BORDER, TEXT, MUTED, GOLD } from '../../../styles/theme';
 import { useState, useEffect } from 'react';
 import { ChevronDown, User, Shield, Lock} from 'lucide-react';
 import { usersApi } from '../../../shared/services/usersApi';
 import { CollaboratorAuthModal } from './CollaboratorAuthModal';
-
-const BORDER = '#e2e8f0';
-const TEXT   = '#1e293b';
-const MUTED  = '#64748b';
-const GOLD   = '#d4a017';
 
 export function CollaboratorSelector({ currentUser, selectedUserId, onSelect }) {
   const [users, setUsers]               = useState([]);
@@ -55,8 +51,8 @@ export function CollaboratorSelector({ currentUser, selectedUserId, onSelect }) 
         >
           <div style={{ width: 28, height: 28, borderRadius: '50%', background: isActingAs ? `${GOLD}33` : `${GOLD}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {isActingAs
-              ? <Shield size={13} color="#b88a12" />
-              : <User size={13} color="#b88a12" />
+              ? <Shield size={13} color="#007A49" />
+              : <User size={13} color="#007A49" />
             }
           </div>
           <div style={{ flex: 1, textAlign: 'left' }}>
@@ -64,7 +60,7 @@ export function CollaboratorSelector({ currentUser, selectedUserId, onSelect }) 
               {loading ? 'Carregando...' : selected?.name}
             </span>
             {isActingAs && (
-              <span style={{ fontSize: 10, color: '#b88a12', fontWeight: 600 }}>
+              <span style={{ fontSize: 10, color: '#007A49', fontWeight: 600 }}>
                 acesso autorizado
               </span>
             )}
@@ -100,7 +96,7 @@ export function CollaboratorSelector({ currentUser, selectedUserId, onSelect }) 
                   }}
                 >
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: isSelected ? `${GOLD}33` : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <User size={13} color={isSelected ? '#b88a12' : MUTED} />
+                    <User size={13} color={isSelected ? '#007A49' : MUTED} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: TEXT }}>

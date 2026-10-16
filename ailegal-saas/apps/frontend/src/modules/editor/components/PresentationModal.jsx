@@ -19,10 +19,10 @@ export function PresentationModal({ onClose, onSelectMode }) {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e293b', marginBottom: 6 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111E38', marginBottom: 6 }}>
               🎬 Modo Apresentação
             </h2>
-            <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.5 }}>
               Escolha como deseja apresentar este fluxograma
             </p>
           </div>
@@ -40,14 +40,14 @@ export function PresentationModal({ onClose, onSelectMode }) {
               padding: '20px 16px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
               border: '2px solid #e2e8f0', background: '#ffffff', transition: 'all .15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#d4a017'; e.currentTarget.style.background = '#fffbeb'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#00C875'; e.currentTarget.style.background = '#E6FAF1'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
           >
-            <Maximize2 size={22} color="#d4a017" style={{ marginBottom: 10 }} />
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>
+            <Maximize2 size={22} color="#00C875" style={{ marginBottom: 10 }} />
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111E38', marginBottom: 4 }}>
               Tela Cheia
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.5 }}>
               Visualização limpa do fluxo completo, sem painéis. Ideal pra navegar livremente.
             </div>
           </button>
@@ -59,14 +59,14 @@ export function PresentationModal({ onClose, onSelectMode }) {
               padding: '20px 16px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
               border: '2px solid #e2e8f0', background: '#ffffff', transition: 'all .15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.background = '#f0f0ff'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.background = '#EFF6FF'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
           >
-            <PlayCircle size={22} color="#6366f1" style={{ marginBottom: 10 }} />
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>
+            <PlayCircle size={22} color="#2563EB" style={{ marginBottom: 10 }} />
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111E38', marginBottom: 4 }}>
               Walkthrough Guiado
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.5 }}>
               Avança passo a passo, com zoom automático e detalhes de cada etapa. Ideal pra explicar pra um cliente.
             </div>
           </button>
