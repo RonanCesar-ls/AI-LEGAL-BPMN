@@ -8,7 +8,14 @@ COPY package.json package-lock.json ./
 COPY apps/frontend/package.json ./apps/frontend/package.json
 COPY apps/backend/package.json ./apps/backend/package.json
 COPY packages/shared-types/package.json ./packages/shared-types/package.json
-RUN npm ci --workspace=apps/frontend --include-workspace-root=false --no-audit --no-fund
+# Keep downloaded packages after failed builds and limit concurrent connections
+# to the registry on smaller deployment hosts. HTTP logs identify stalled files.
+RUN --mount=type=cache,id=pbmapp-frontend-npm,target=/root/.npm,sharing=locked \
+    npm ci --workspace=apps/frontend --include-workspace-root=false \
+      --no-audit --no-fund --prefer-offline \
+      --maxsockets=3 --fetch-retries=4 --fetch-retry-factor=2 \
+      --fetch-retry-mintimeout=10000 --fetch-retry-maxtimeout=60000 \
+      --fetch-timeout=300000 --loglevel=http
 
 COPY apps/frontend/ ./apps/frontend/
 
