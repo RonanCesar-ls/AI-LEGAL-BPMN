@@ -4,11 +4,23 @@ import { slaService }      from './sla.service.js';
 import { CorrelationService } from './correlation.service.js';
 import { Request, Response } from 'express';
 import fs from 'fs';
-import mammoth from 'mammoth';
 import { AIService } from '../ai/ai.service.js';
+import { AIUnavailableError } from '../ai/ai.retry.js';
+import { DocumentReadError, extractUploadedDocumentText } from './document-text.js';
 
 const correlationService = new CorrelationService();
 const aiService = new AIService();
+
+function sendProcessError(res: Response, error: unknown, fallback: string) {
+  if (error instanceof AIUnavailableError) {
+    res.setHeader('Retry-After', String(error.retryAfter));
+    return res.status(error.statusCode).json({ error: error.message, retryable: true });
+  }
+  if (error instanceof DocumentReadError) {
+    return res.status(error.statusCode).json({ error: error.message });
+  }
+  return res.status(500).json({ error: fallback });
+}
 
 const DOCUMENT_ANALYSIS_PROMPT = `You are a legal process assistant. Read the raw text from the document below and write a clear process description in Portuguese.
 
@@ -24,22 +36,21 @@ export const processController = {
 
   generate: async (req: Request, res: Response) => {
     try {
-      const { prompt } = req.body;
+      const { prompt, sourceFileName } = req.body;
 
       if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
         return res.status(400).json({ error: 'O campo "prompt" é obrigatório.' });
       }
 
-      const flowchartData = await aiService.generateFlowchartFromText(prompt.trim());
+      const flowchartData = await aiService.generateFlowchartFromText(
+        prompt.trim(), typeof sourceFileName === 'string' ? sourceFileName : undefined
+      );
 
       return res.json(flowchartData);
 
     } catch (error) {
       console.error('[generate] Erro:', error);
-      return res.status(500).json({ 
-        error: 'Falha ao gerar o fluxograma.',
-        detail: error instanceof Error ? error.message : String(error)
-      });
+      return sendProcessError(res, error, 'Falha ao gerar o fluxograma.');
     }
   },
 
@@ -51,35 +62,7 @@ export const processController = {
         return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
       }
 
-      const originalName = req.file.originalname.toLowerCase();
-      const fileType    = req.file.mimetype;
-      let extractedText = '';
-
-      if (fileType === 'application/pdf' || originalName.endsWith('.pdf')) {
-        const dataBuffer = fs.readFileSync(filePath);
-        const pdfParseModule = (await import('pdf-parse')) as any;
-        const pdfParse = pdfParseModule.default ?? pdfParseModule;
-        const data = await pdfParse(dataBuffer);
-        extractedText = data.text;
-      }
-      else if (
-        fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        originalName.endsWith('.docx')
-      ) {
-        const result = await mammoth.extractRawText({ path: filePath });
-        extractedText = result.value;
-      }
-      else {
-        return res.status(400).json({ error: 'Formato não suportado. Envie PDF ou DOCX.' });
-      }
-
-      fs.unlinkSync(filePath);
-
-      if (!extractedText.trim()) {
-        return res.status(422).json({ 
-          error: 'O arquivo não contém texto legível. Verifique se não é um PDF escaneado.' 
-        });
-      }
+      const extractedText = await extractUploadedDocumentText(req.file);
 
       const safeText = extractedText.substring(0, 15000);
 
@@ -96,10 +79,7 @@ export const processController = {
         fs.unlinkSync(filePath);
       }
 
-      return res.status(500).json({ 
-        error: 'Falha ao processar o arquivo.',
-        detail: error instanceof Error ? error.message : String(error)
-      });
+      return sendProcessError(res, error, 'Falha ao processar o arquivo.');
     }
   },
 
@@ -113,26 +93,7 @@ export const processController = {
 
       const results = await Promise.allSettled(
         files.map(async (file) => {
-          const originalName = file.originalname.toLowerCase();
-          let extractedText = '';
-
-          if (file.mimetype === 'application/pdf' || originalName.endsWith('.pdf')) {
-            const dataBuffer = fs.readFileSync(file.path);
-            const pdfParseModule = (await import('pdf-parse')) as any;
-            const pdfParse = pdfParseModule.default ?? pdfParseModule;
-            const data = await pdfParse(dataBuffer);
-            extractedText = data.text;
-          } else if (
-            file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-            originalName.endsWith('.docx')
-          ) {
-            const result = await mammoth.extractRawText({ path: file.path });
-            extractedText = result.value;
-          }
-
-          if (fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-          }
+          const extractedText = await extractUploadedDocumentText(file);
 
           const safeText = extractedText.substring(0, 15000);
           const prompt = `You are a legal process assistant. Read the raw text from the document below and write a clear process description in Portuguese. Focus on: who performs each action, what is done in sequence, and what decisions exist. Return ONLY a direct narrative paragraph in Portuguese.\n\nDOCUMENT TEXT:\n"${safeText}"`;
@@ -325,10 +286,7 @@ export const processController = {
 
     } catch (error) {
       console.error('[generateMerge] Erro:', error);
-      return res.status(500).json({
-        error: 'Falha ao integrar o novo documento ao fluxograma.',
-        detail: error instanceof Error ? error.message : String(error),
-      });
+      return sendProcessError(res, error, 'Falha ao integrar o novo documento ao fluxograma.');
     }
   },
 

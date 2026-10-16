@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { withAIRetry } from './ai.retry.js';
 
 interface GenerateTextParams {
   prompt: string;
@@ -15,13 +16,13 @@ export async function generateText(params: GenerateTextParams): Promise<string> 
   const genAI = new GoogleGenerativeAI(apiKey);
   
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     systemInstruction: params.system,
     generationConfig: {
       responseMimeType: params.format === 'json' ? "application/json" : "text/plain",
     }
   });
 
-  const result = await model.generateContent(params.prompt);
+  const result = await withAIRetry(() => model.generateContent(params.prompt));
   return result.response.text();
 }

@@ -36,6 +36,7 @@ export const EditorPage = ({ user, onLogout, onAbrirDiario, onAbrirMonitoramento
 
   const { generating, runQueueExtraction, runQueueGeneration } = useFlowGenerate({
     activeProjectId,
+    projects,
     setProjects,
   });
 

@@ -1,274 +1,158 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { getLayoutedElements } from '../../../shared/utils/layout';
 import { authApi } from '../../../shared/services/authApi';
-
 import { API_URL as API } from '../../../shared/config.js';
 
-export function useFlowGenerate({ activeProjectId, setProjects }) {
+async function responseData(response, fallback) {
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.error || fallback);
+  if (!data) throw new Error('O servidor retornou uma resposta inválida. Tente novamente.');
+  return data;
+}
+
+export function useFlowGenerate({ activeProjectId, projects, setProjects }) {
   const [generating, setGenerating] = useState(false);
+  const operations = useRef(0);
+  const begin = useCallback(() => { operations.current++; setGenerating(true); }, []);
+  const finish = useCallback(() => { operations.current--; setGenerating(operations.current > 0); }, []);
 
   const updateProject = useCallback((projectId, patch) => {
-    setProjects(prev => prev.map(p =>
-      p.id === projectId ? { ...p, ...patch } : p
-    ));
+    setProjects(prev => prev.map(project => project.id === projectId ? { ...project, ...patch } : project));
   }, [setProjects]);
 
-  const addLog = useCallback((projectId, msg) => {
-    setProjects(prev => prev.map(p =>
-      p.id === projectId
-        ? { ...p, aiLog: [...(p.aiLog ?? []), msg] }
-        : p
-    ));
+  const addLog = useCallback((projectId, message) => {
+    setProjects(prev => prev.map(project => project.id === projectId
+      ? { ...project, aiLog: [...(project.aiLog ?? []), message] } : project));
   }, [setProjects]);
 
   const updateQueueItem = useCallback((projectId, itemId, patch) => {
-    setProjects(prev => prev.map(p => {
-      if (p.id !== projectId) return p;
-      return {
-        ...p,
-        processingQueue: p.processingQueue.map(item =>
-          item.id === itemId ? { ...item, ...patch } : item
-        ),
-      };
-    }));
+    setProjects(prev => prev.map(project => project.id === projectId ? {
+      ...project,
+      processingQueue: (project.processingQueue ?? []).map(item => item.id === itemId ? { ...item, ...patch } : item),
+    } : project));
   }, [setProjects]);
 
-  // ─── FASE 1: só extrai texto e preenche o textarea ────────────────────────
+  const failProject = useCallback((projectId, message) => {
+    setProjects(prev => prev.map(project => project.id === projectId ? {
+      ...project,
+      status: 'error',
+      aiLog: [...(project.aiLog ?? []), `❌ Erro: ${message}`],
+      processingQueue: (project.processingQueue ?? []).map(item =>
+        ['generating', 'extracting'].includes(item.status) ? { ...item, status: 'error', error: message } : item),
+    } : project));
+  }, [setProjects]);
+
   const runQueueExtraction = useCallback(async (files, overrideProjectId) => {
-    const targetProjectId = overrideProjectId ?? activeProjectId;
-    if (!files?.length || !targetProjectId) return;
-
-    setGenerating(true);
-
-    let targetProject = null;
-    setProjects(prev => {
-      targetProject = prev.find(p => p.id === targetProjectId) ?? null;
-      return prev;
-    });
-
-    await new Promise(r => setTimeout(r, 100));
-
-    if (!targetProject) {
-      await new Promise(r => setTimeout(r, 500));
-      setProjects(prev => {
-        targetProject = prev.find(p => p.id === targetProjectId) ?? null;
-        return prev;
-      });
-    }
-
-    if (!targetProject) {
-      console.error("Erro: Projeto não encontrado no estado para extração.");
-      setGenerating(false);
-      return;
-    }
-
+    const projectId = overrideProjectId ?? activeProjectId;
+    if (!files?.length || !projectId) return;
+    begin();
     const queueItems = files.map(file => ({
-      id:       `qi_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-      fileName: file.name,
-      status:   'waiting',
+      id: `qi_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      fileName: file.name, status: 'waiting',
     }));
-
-    updateProject(targetProjectId, {
-      status:          'extracting',
-      nodes:           [],
-      edges:           [],
-      aiLog:           [`📄 Extraindo texto de ${files.length} arquivo(s)...`],
-      processingQueue: queueItems,
-      promptText:      '',
+    updateProject(projectId, {
+      status: 'extracting', nodes: [], edges: [], promptText: '',
+      aiLog: [`📄 Extraindo texto de ${files.length} arquivo(s)...`], processingQueue: queueItems,
     });
-
     try {
-      // INJEÇÃO BRUTA E INFALÍVEL: Pega o token direto e limpa aspas (se houver)
-      const rawToken = localStorage.getItem('pbmapp_token');
-      const cleanToken = rawToken ? rawToken.replace(/['"]+/g, '') : '';
-
-      const extractedTexts = await Promise.all(
-        files.map(async (file, idx) => {
-          const itemId = queueItems[idx].id;
-
-          updateQueueItem(targetProjectId, itemId, { status: 'extracting' });
-          addLog(targetProjectId, `→ Lendo: ${file.name}...`);
-
-          const formData = new FormData();
-          formData.append('file', file);
-
-          const res = await fetch(`${API}/api/process/extract-prompt`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${cleanToken}` // Envia SOMENTE a autorização
-            },
-            body: formData,
+      const extractedTexts = [];
+      // Process each file in order to avoid a burst of simultaneous AI requests.
+      for (let index = 0; index < files.length; index++) {
+        const file = files[index];
+        const itemId = queueItems[index].id;
+        updateQueueItem(projectId, itemId, { status: 'extracting', error: undefined });
+        addLog(projectId, `→ Lendo: ${file.name}...`);
+        try {
+          const form = new FormData();
+          form.append('file', file);
+          const response = await fetch(`${API}/api/process/extract-prompt`, {
+            method: 'POST', headers: { Authorization: `Bearer ${authApi.getToken() ?? ''}` }, body: form,
           });
-
-          if (!res.ok) throw new Error(`Falha ao extrair ${file.name}`);
-
-          const data = await res.json();
-          const extracted = data.suggestedPrompt ?? '';
-
-          updateQueueItem(targetProjectId, itemId, {
-            status: 'done',
-            extractedPrompt: extracted,
-          });
-          addLog(targetProjectId, `✓ Extraído: ${file.name}`);
-
-          return { fileName: file.name, text: extracted };
-        })
-      );
-
-      const combinedPrompt = extractedTexts
-        .map(({ fileName, text }) =>
-          files.length > 1 ? `[${fileName}]\n${text}` : text
-        )
-        .join('\n\n---\n\n');
-
-      updateProject(targetProjectId, {
-        status:     'ready',
-        promptText: combinedPrompt,
-      });
-
-      addLog(targetProjectId, '✅ Extração concluída! Revise o rascunho e clique em Gerar Fluxograma.');
-
-    } catch (error) {
-      addLog(targetProjectId, `❌ Erro: ${error.message}`);
-      updateProject(targetProjectId, { status: 'error' });
-    } finally {
-      setGenerating(false);
-    }
-  }, [activeProjectId, setProjects, updateProject, addLog, updateQueueItem]);
-
-  // ─── FASE 2: gera o fluxo — lê a fila já extraída ou usa promptText ───────
-  const runQueueGeneration = useCallback(async (overrideProjectId) => {
-    const targetProjectId = overrideProjectId ?? activeProjectId;
-    if (!targetProjectId) return;
-
-    setGenerating(true);
-
-    let targetProject = null;
-    setProjects(prev => {
-      targetProject = prev.find(p => p.id === targetProjectId) ?? null;
-      return prev;
-    });
-
-    await new Promise(r => setTimeout(r, 0));
-
-    updateProject(targetProjectId, { status: 'generating', nodes: [], edges: [] });
-
-    try {
-      const queue = (targetProject?.processingQueue ?? [])
-        .filter(item => item.extractedPrompt);
-
-      const hasMultiQueue = queue.length > 1;
-      const hasSingleQueue = queue.length === 1;
-
-      if (hasMultiQueue) {
-        addLog(targetProjectId, `── Gerando fluxograma integrado (${queue.length} arquivos)...`);
-
-        updateQueueItem(targetProjectId, queue[0].id, { status: 'generating' });
-        addLog(targetProjectId, `→ Gerando base: ${queue[0].fileName}...`);
-
-        const baseRes = await fetch(`${API}/api/process/generate`, {
-          method:  'POST',
-          headers: authApi.headers(), // Usa a central de headers para as rotas JSON
-          body:    JSON.stringify({
-            prompt:         queue[0].extractedPrompt,
-            sourceFileName: queue[0].fileName,
-          }),
-        });
-
-        if (!baseRes.ok) throw new Error(`Falha ao gerar base`);
-
-        let currentGraph = await baseRes.json();
-        updateQueueItem(targetProjectId, queue[0].id, { status: 'done' });
-        addLog(targetProjectId, `✓ Base gerada (${currentGraph.nodes?.length ?? 0} nós)`);
-
-        const partial1 = getLayoutedElements(currentGraph.nodes, currentGraph.edges);
-        updateProject(targetProjectId, { nodes: partial1.nodes, edges: partial1.edges });
-
-        for (let i = 1; i < queue.length; i++) {
-          const item = queue[i];
-          updateQueueItem(targetProjectId, item.id, { status: 'generating' });
-          addLog(targetProjectId, `→ Integrando: ${item.fileName}...`);
-
-          const mergeRes = await fetch(`${API}/api/process/generate-merge`, {
-            method:  'POST',
-            headers: authApi.headers(),
-            body:    JSON.stringify({
-              existingGraph:   currentGraph,
-              newDocumentText: item.extractedPrompt,
-              sourceFileName:  item.fileName,
-            }),
-          });
-
-          if (!mergeRes.ok) throw new Error(`Falha ao integrar: ${item.fileName}`);
-          currentGraph = await mergeRes.json();
-
-          updateQueueItem(targetProjectId, item.id, { status: 'done' });
-          addLog(targetProjectId, `✓ Integrado (${currentGraph.nodes?.length ?? 0} nós total)`);
-
-          const partialLayout = getLayoutedElements(currentGraph.nodes, currentGraph.edges);
-          updateProject(targetProjectId, { nodes: partialLayout.nodes, edges: partialLayout.edges });
+          const data = await responseData(response, `Falha ao extrair ${file.name}.`);
+          if (!data.suggestedPrompt?.trim()) throw new Error('O arquivo não contém texto legível.');
+          updateQueueItem(projectId, itemId, { status: 'done', extractedPrompt: data.suggestedPrompt });
+          extractedTexts.push({ fileName: file.name, text: data.suggestedPrompt });
+          addLog(projectId, `✓ Extraído: ${file.name}`);
+        } catch (error) {
+          updateQueueItem(projectId, itemId, { status: 'error', error: error.message });
+          addLog(projectId, `❌ ${file.name}: ${error.message}`);
         }
-
-        addLog(targetProjectId, '── Aplicando layout final...');
-        const finalLayout = getLayoutedElements(currentGraph.nodes, currentGraph.edges);
-        updateProject(targetProjectId, {
-          status: 'done',
-          nodes:  finalLayout.nodes,
-          edges:  finalLayout.edges,
-        });
-        addLog(targetProjectId, `✅ Pronto! ${finalLayout.nodes.filter(n => n.type !== 'swimlane').length} nós em ${queue.length} processo(s).`);
-
-      } else {
-        const prompt = hasSingleQueue
-          ? queue[0].extractedPrompt
-          : (targetProject?.promptText ?? '');
-
-        if (!prompt.trim()) throw new Error('Nenhum texto para gerar o fluxograma.');
-
-        addLog(targetProjectId, '→ Enviando prompt para a IA...');
-
-        if (hasSingleQueue) {
-          updateQueueItem(targetProjectId, queue[0].id, { status: 'generating' });
-        }
-
-        const res = await fetch(`${API}/api/process/generate`, {
-          method:  'POST',
-          headers: authApi.headers(),
-          body:    JSON.stringify({
-            prompt,
-            sourceFileName: hasSingleQueue ? queue[0].fileName : undefined,
-          }),
-        });
-
-        if (!res.ok) throw new Error('Erro na API');
-
-        addLog(targetProjectId, '→ Aplicando layout...');
-        const data   = await res.json();
-        const layout = getLayoutedElements(data.nodes, data.edges);
-
-        if (hasSingleQueue) {
-          updateQueueItem(targetProjectId, queue[0].id, { status: 'done' });
-        }
-
-        updateProject(targetProjectId, {
-          status: 'done',
-          nodes:  layout.nodes,
-          edges:  layout.edges,
-        });
-        addLog(targetProjectId, `✅ Fluxograma gerado! (${layout.nodes.filter(n => n.type !== 'swimlane').length} nós)`);
       }
-
-    } catch (err) {
-      addLog(targetProjectId, `❌ Erro: ${err.message}`);
-      updateProject(targetProjectId, { status: 'error' });
+      if (!extractedTexts.length) throw new Error('Nenhum arquivo foi extraído. Confira os erros acima e tente novamente.');
+      const combinedPrompt = extractedTexts.map(({ fileName, text }) =>
+        files.length > 1 ? `[${fileName}]\n${text}` : text).join('\n\n---\n\n');
+      updateProject(projectId, { status: 'ready', promptText: combinedPrompt });
+      if (extractedTexts.length < files.length) {
+        addLog(projectId, '⚠ Alguns arquivos falharam. O rascunho contém apenas os arquivos extraídos com sucesso.');
+      }
+      addLog(projectId, '✅ Revise o rascunho e clique em Gerar Fluxograma.');
+    } catch (error) {
+      failProject(projectId, error.message);
     } finally {
-      setGenerating(false);
+      finish();
     }
-  }, [activeProjectId, setProjects, updateProject, addLog, updateQueueItem]);
+  }, [activeProjectId, begin, finish, updateProject, updateQueueItem, addLog, failProject]);
 
-  const runTextGeneration = useCallback(async (promptText) => {
-    if (!promptText?.trim() || !activeProjectId) return;
-    await runQueueGeneration(activeProjectId);
+  const runQueueGeneration = useCallback(async (overrideProjectId, overridePrompt) => {
+    const projectId = overrideProjectId ?? activeProjectId;
+    const project = projects.find(item => item.id === projectId);
+    if (!project) return;
+    begin();
+    // Keep the last usable graph if the provider fails during regeneration.
+    updateProject(projectId, { status: 'generating' });
+    const queue = (project.processingQueue ?? []).filter(item => item.extractedPrompt);
+    const originalCombinedPrompt = queue.map(item => `[${item.fileName}]\n${item.extractedPrompt}`).join('\n\n---\n\n');
+    const prompt = overridePrompt ?? project.promptText ?? '';
+    const useMerge = queue.length > 1 && prompt.trim() === originalCombinedPrompt.trim();
+    try {
+      if (useMerge) {
+        addLog(projectId, `── Gerando fluxograma integrado (${queue.length} arquivos)...`);
+        updateQueueItem(projectId, queue[0].id, { status: 'generating', error: undefined });
+        const baseResponse = await fetch(`${API}/api/process/generate`, {
+          method: 'POST', headers: authApi.headers(),
+          body: JSON.stringify({ prompt: queue[0].extractedPrompt, sourceFileName: queue[0].fileName }),
+        });
+        let graph = await responseData(baseResponse, 'Falha ao gerar o fluxograma base.');
+        updateQueueItem(projectId, queue[0].id, { status: 'done' });
+        let layout = getLayoutedElements(graph.nodes, graph.edges);
+        updateProject(projectId, { nodes: layout.nodes, edges: layout.edges });
+        for (const item of queue.slice(1)) {
+          updateQueueItem(projectId, item.id, { status: 'generating', error: undefined });
+          addLog(projectId, `→ Integrando: ${item.fileName}...`);
+          const response = await fetch(`${API}/api/process/generate-merge`, {
+            method: 'POST', headers: authApi.headers(),
+            body: JSON.stringify({ existingGraph: graph, newDocumentText: item.extractedPrompt, sourceFileName: item.fileName }),
+          });
+          graph = await responseData(response, `Falha ao integrar ${item.fileName}.`);
+          updateQueueItem(projectId, item.id, { status: 'done' });
+          layout = getLayoutedElements(graph.nodes, graph.edges);
+          updateProject(projectId, { nodes: layout.nodes, edges: layout.edges });
+        }
+        updateProject(projectId, { status: 'done' });
+        addLog(projectId, `✅ Fluxograma integrado! (${layout.nodes.filter(node => node.type !== 'swimlane').length} nós)`);
+      } else {
+        if (!prompt.trim()) throw new Error('Nenhum texto para gerar o fluxograma.');
+        for (const item of queue) updateQueueItem(projectId, item.id, { status: 'generating', error: undefined });
+        addLog(projectId, '→ Enviando prompt para a IA...');
+        const response = await fetch(`${API}/api/process/generate`, {
+          method: 'POST', headers: authApi.headers(),
+          body: JSON.stringify({ prompt, sourceFileName: queue.length === 1 ? queue[0].fileName : undefined }),
+        });
+        const data = await responseData(response, 'Falha ao gerar o fluxograma.');
+        const layout = getLayoutedElements(data.nodes, data.edges);
+        for (const item of queue) updateQueueItem(projectId, item.id, { status: 'done' });
+        updateProject(projectId, { status: 'done', nodes: layout.nodes, edges: layout.edges });
+        addLog(projectId, `✅ Fluxograma gerado! (${layout.nodes.filter(node => node.type !== 'swimlane').length} nós)`);
+      }
+    } catch (error) {
+      failProject(projectId, error.message);
+    } finally {
+      finish();
+    }
+  }, [activeProjectId, projects, begin, finish, updateProject, updateQueueItem, addLog, failProject]);
+
+  const runTextGeneration = useCallback(async text => {
+    if (text?.trim() && activeProjectId) await runQueueGeneration(activeProjectId, text);
   }, [activeProjectId, runQueueGeneration]);
 
   return { generating, runQueueExtraction, runQueueGeneration, runTextGeneration };

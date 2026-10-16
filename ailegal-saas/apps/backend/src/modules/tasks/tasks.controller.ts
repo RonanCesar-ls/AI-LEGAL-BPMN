@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { taskRepository, taskAuditRepository } from '../../database/task.repository.js';
 import { pool } from '../../database/connection.js';
 import { AIService } from '../ai/ai.service.js';
+import { verifyAccessToken } from '../../middleware/auth.middleware.js';
 
 const aiService = new AIService();
 
@@ -360,12 +361,10 @@ export const tasksController = {
     let user = (req as any).user;
     
     if (!user?.userId) {
-      const token = req.query.token as string;
-      if (token) {
+      const token = req.query.token;
+      if (typeof token === 'string' && token) {
         try {
-          const jwt = await import('jsonwebtoken');
-          const decoded = jwt.verify(token, process.env.JWT_SECRET ?? 'pbmapp_secret_dev') as any;
-          user = decoded;
+          user = verifyAccessToken(token);
         } catch {
           return res.status(401).end();
         }
@@ -379,6 +378,7 @@ export const tasksController = {
     res.setHeader('Connection',    'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
+    res.write(': connected\n\n');
 
     sseClients.add(res);
 
@@ -391,7 +391,7 @@ export const tasksController = {
       }
     }, 30000);
 
-    req.on('close', () => {
+    res.on('close', () => {
       clearInterval(heartbeat);
       sseClients.delete(res);
     });

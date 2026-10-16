@@ -130,7 +130,7 @@ export function useProjects(user) {
   const activeProject = projects.find(p => p.id === activeProjectId) || null;
   const nodes         = activeProject?.nodes || [];
   const edges         = activeProject?.edges || [];
-  const generated     = activeProject?.status === 'done';
+  const generated     = nodes.length > 0;
 
   const setActiveNodes = useCallback((updater) =>
     setProjects(prev => prev.map(p =>

@@ -10,6 +10,14 @@ export interface JwtPayload {
   role:   string;
 }
 
+export function verifyAccessToken(token: string): JwtPayload {
+  const decoded = jwt.verify(token, JWT_SECRET);
+  if (typeof decoded === 'string' || typeof decoded.userId !== 'string' || !decoded.userId) {
+    throw new Error('Token sem usuário válido.');
+  }
+  return decoded as JwtPayload;
+}
+
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
@@ -19,7 +27,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     }
 
     const token   = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = verifyAccessToken(token);
 
     // Injeta o user no request para os controllers usarem
     (req as any).user = decoded;
